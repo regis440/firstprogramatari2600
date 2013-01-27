@@ -43,7 +43,7 @@ ClearMem
 					; to ClearMem
 
 ;	set background color to black (black color have val $00)
-
+	lda #$12
 	sta COLUBK		; store A value to background color
 					; register (COLUBK is addr from vcs.h)
 
@@ -89,41 +89,45 @@ Main
 	lda #0
 	sta VSYNC
 
-;	====================END LOGIC====================
-;	wait for Vblank end if we have sere cycles
-
-WaitForVblank
-	lda INTIM			; load TIM64T counter
-	bne WaitForVblank	; if TIM64T == 0 couter 
-						; branch to WaitForVblank
-
-;	load to Y reg number of scanlines to draw
-
-	ldy #190	; TIA H resolution is 192 but on first 
-				; we will setup initial valuses for regs
-
-	sta WSYNC	; atari have somethig like 44 cycles to
-				; end scanline so we wait for finish
-
-	sta VBLANK  ; set end of vblank
-
 ;	HMM0 is horizontal movment register it use two part 
 ;	with two's complement notation ($X0 left $0X right nibble)
 
 	lda #$F0	; $F is -1 in two's complement notation
 	sta HMM0
 
-	sta WSYNC	; ? WHY ?
 	sta HMOVE	; turn on horizontal motion
 
-;	scanline loop
+;	load to Y reg number of scanlines to draw
 
-ScanLoop
-	sta WSYNC
+	ldy #192	; TIA H resolution is 192 
+
+;	====================END LOGIC====================
+;	wait for Vblank end if we have spere cycles
+
+WaitForVblank
+	lda INTIM			; load TIM64T counter
+	bne WaitForVblank	; if TIM64T == 0 couter 
+						; branch to WaitForVblank
+
+	sta WSYNC	; atari have somethig like 44 cycles to
+				; end scanline so we wait for finish
+
+	sta VBLANK  ; set end of vblank
+
+;	scanline loop
+;	horizonatl blank have 68 cycles but we must subtract
+;	sta WSYNC instruction (3 cycles), dey instruction(2 cycles) 
+;	and bne instruction (4 cycles), so every H blank have
+;	68 - 3 - 2 - 4 = 59 cycles except first scanline
+;	68 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 62 
+ScanLoop	
 	lda #2 			; to turn on visible for missile 0 in this
 					; scanline we must set 1 on index 1
 					; of control byte of missile 0 
 	sta ENAM0
+
+	sta WSYNC
+
 	dey				; decrement scan line counter
 	bne	ScanLoop	; if couter not 0 repeat
 
@@ -137,7 +141,7 @@ ScanLoop
 ;	count down 30 scanlines of overscan we can put
 ;	here logic code 
 
-;	beter then emply loop pu here some code 
+;	beter then emply loop put here some code 
 ;	2280 - 3(jmp instruction) cycles
 ;	===================BEGIN LOGIC===================
 	
