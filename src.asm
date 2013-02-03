@@ -14,6 +14,11 @@
 
 	org $F000
 
+;	here we can set variables, atari have 128 byte of RAM
+;	in address $80 to $FF
+DOTYStartPopsition 		= $81	; variable is stored on address $81
+DOTHeightLinecsCunter 	= $82
+
 ;	begin of program with labe "Strat"
 ;	adress of "Strat" is $F000
 
@@ -92,14 +97,34 @@ Main
 ;	HMM0 is horizontal movment register it use two part 
 ;	with two's complement notation ($X0 left $0X right nibble)
 
-	lda #$F0	; $F is -1 in two's complement notation
-	sta HMM0
+;	lda #$F0	; $F is -1 in two's complement notation
 
-	sta HMOVE	; turn on horizontal motion
+	lda #$10	; slow move right
+	sta HMM0
 
 ;	load to Y reg number of scanlines to draw
 
 	ldy #192	; TIA H resolution is 192 
+
+;	set position of DOT
+
+	lda #80
+	sta DOTYStartPopsition
+
+;	set width of Dot
+	
+	lda #$20 	; look to stell programing guide http://pl.scribd.com/doc/4740283/STELLA-Programmers-Guide
+	sta NUSIZ0	; NUSIZ0 sets the size and multiplying
+
+;	after set HMM0 we must wait minimum 24 cycles
+;	to can set HMOVE
+
+WaitForHMM0Set
+	lda INTIM			; load TIM64T counter
+	cmp #42
+	bpl WaitForHMM0Set
+
+	sta HMOVE	; turn on horizontal motion
 
 ;	====================END LOGIC====================
 ;	wait for Vblank end if we have spere cycles
@@ -121,10 +146,31 @@ WaitForVblank
 ;	68 - 3 - 2 - 4 = 59 cycles except first scanline
 ;	68 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 62 
 ScanLoop	
+
+	cpy DOTYStartPopsition	; compare y reg with DOTYStartPopsition 
+							; value
+	bne SkipActivateMissile ; if not equal, not set dot drow counter
+	
+	lda #8
+	sta DOTHeightLinecsCunter ; set height couter for dot t 8 lines
+
+SkipActivateMissile
+
+	lda #0
+	sta ENAM0	 	; turn off visible for missile 0
+
+	lda DOTHeightLinecsCunter
+	beq	FinishScanLine			; if  DOTHeightLinecsCunter == 0
+								; not set missile draw for this scanline
+	
 	lda #2 			; to turn on visible for missile 0 in this
 					; scanline we must set 1 on index 1
 					; of control byte of missile 0 
 	sta ENAM0
+
+	dec DOTHeightLinecsCunter	; decrement couter
+
+FinishScanLine
 
 	sta WSYNC
 
