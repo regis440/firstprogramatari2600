@@ -1,4 +1,4 @@
-;red DOT program atari 2600 Filip Pierscinski
+;	move red DOT program atari 2600 Filip Pierscinski
 ;
 ;	tel DASM that this is 6502 program
 
@@ -57,6 +57,10 @@ ClearMem
 	lda #$42
 	sta COLUP0		; set color for player 0 to $42
 
+	;	set default position of DOT
+	lda #8
+	sta DOTYStartPopsition
+
 ;	starts main loop
 ;	1) VSYNC
 ;	2) vertical blank
@@ -97,9 +101,7 @@ Main
 ;	HMM0 is horizontal movment register it use two part 
 ;	with two's complement notation ($X0 left $0X right nibble)
 
-;	lda #$F0	; $F is -1 in two's complement notation
-
-	lda #$10	; slow move right
+	lda #$00	; slow move right
 	sta HMM0
 
 ;	load to Y reg number of scanlines to draw
@@ -108,8 +110,28 @@ Main
 
 ;	set position of DOT
 
-	lda #80
-	sta DOTYStartPopsition
+;	check is P0 joy is in down position
+	lda %00010000
+	bit SWCHA 			; SWCHA controll reg for joys
+						; hi 4 bits for player 0
+						; low 4 bits for player 1
+	bne SkipMoveDown	; if not qual 0 it menas that on first bit
+						; of controll reg P0 joy is 1 so it is not down 
+	lda DOTYStartPopsition
+	cmp #192
+	beq SkipMoveDown		; skip if DOTYStartPopsition == 192
+	inc DOTYStartPopsition
+SkipMoveDown 
+
+;	check is P0 joy is in down position
+	lda %00100000
+	bit SWCHA 		
+	bne SkipMoveUp
+	lda DOTYStartPopsition
+	cmp #8
+	beq SkipMoveUp		; skip if DOTYStartPopsition == dot_height
+	dec DOTYStartPopsition
+SkipMoveUp 
 
 ;	set width of Dot
 	
