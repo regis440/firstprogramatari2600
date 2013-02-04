@@ -1,4 +1,4 @@
-;red line program atari 2600 Filip Pierscinski
+;red DOT program atari 2600 Filip Pierscinski
 ;
 ;	tel DASM that this is 6502 program
 
