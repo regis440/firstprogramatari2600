@@ -98,11 +98,35 @@ Main
 	lda #0
 	sta VSYNC
 
+	ldx #$00	; slow move right
+
+;	check is P0 joy is in left position
+
+	lda #%10000000
+	bit SWCHA 			; SWCHA controll reg for joys
+						; hi 4 bits for player 0
+						; low 4 bits for player 1
+	bne SkipMoveLeft	; if not qual 0 it menas that on 3 bit
+						; of controll reg P0 joy is 1 so it is not left
+	
+	ldx #$F0			; -1 -> slow move right
+
+SkipMoveLeft
+
+;	check is P0 joy is in right position
+
+	lda #%01000000
+	bit SWCHA 
+	bne SkipMoveRight
+	
+	ldx #$10			; 1 -> slow move left
+
+SkipMoveRight
+
 ;	HMM0 is horizontal movment register it use two part 
 ;	with two's complement notation ($X0 left $0X right nibble)
-
-	lda #$00	; slow move right
-	sta HMM0
+	
+	stx HMM0
 
 ;	load to Y reg number of scanlines to draw
 
@@ -111,12 +135,9 @@ Main
 ;	set position of DOT
 
 ;	check is P0 joy is in down position
-	lda %00010000
-	bit SWCHA 			; SWCHA controll reg for joys
-						; hi 4 bits for player 0
-						; low 4 bits for player 1
-	bne SkipMoveDown	; if not qual 0 it menas that on first bit
-						; of controll reg P0 joy is 1 so it is not down 
+	lda #%00010000
+	bit SWCHA 			
+	bne SkipMoveDown	
 	lda DOTYStartPopsition
 	cmp #192
 	beq SkipMoveDown		; skip if DOTYStartPopsition == 192
@@ -124,7 +145,7 @@ Main
 SkipMoveDown 
 
 ;	check is P0 joy is in down position
-	lda %00100000
+	lda #%00100000
 	bit SWCHA 		
 	bne SkipMoveUp
 	lda DOTYStartPopsition
