@@ -7,17 +7,21 @@
 ;	include vcs.h to have in program all 
 ;	special atari memory locations
 
+
 	include vcs.h
 
 ;	tell DASM where all code of atari 
 ;	program gose 
 
+
 	org $F000
+
 
 ;	here we can set variables, atari have 128 byte of RAM
 ;	in address $80 to $FF
 DOTYStartPopsition 		= $81	; variable is stored on address $81
 DOTHeightLinecsCunter 	= $82
+BackgroundColorWhileButtonPressed 	= $83
 
 ;	begin of program with labe "Strat"
 ;	adress of "Strat" is $F000
@@ -47,17 +51,14 @@ ClearMem
 	bne ClearMem	; if not Z status flag set to 1 branch
 					; to ClearMem
 
-;	set background color to black (black color have val $00)
-	lda #$12
-	sta COLUBK		; store A value to background color
-					; register (COLUBK is addr from vcs.h)
+	lda #$FF
+	sta BackgroundColorWhileButtonPressed
 
 ;	now we set color for player 0 and for his missile
-
 	lda #$42
 	sta COLUP0		; set color for player 0 to $42
 
-	;	set default position of DOT
+;	set default position of DOT
 	lda #8
 	sta DOTYStartPopsition
 
@@ -169,6 +170,24 @@ WaitForHMM0Set
 
 	sta HMOVE	; turn on horizontal motion
 
+	lda #%10000000 
+	bit INPT4
+	bne NotPressedButton
+	
+	lda BackgroundColorWhileButtonPressed
+	sta COLUBK		
+
+	jmp SkipPressedButton
+
+NotPressedButton
+
+;	set background color to black (black color have val $00)
+	lda #$00
+	sta COLUBK		; store A value to background color
+					; register (COLUBK is addr from vcs.h)
+
+SkipPressedButton
+
 ;	====================END LOGIC====================
 ;	wait for Vblank end if we have spere cycles
 
@@ -194,16 +213,20 @@ ScanLoop
 							; value
 	bne SkipActivateMissile ; if not equal, not set dot drow counter
 	
-	lda #8
-	sta DOTHeightLinecsCunter ; set height couter for dot t 8 lines
+	lda #7
+	sta DOTHeightLinecsCunter ; set height couter for dot to 8 lines
+							  ; we set 7 because this line is first
+							  ; and we skip decrementation
+
+	lda #2 			
+	sta ENAM0
+
+	jmp FinishScanLine
 
 SkipActivateMissile
 
-	lda #0
-	sta ENAM0	 	; turn off visible for missile 0
-
 	lda DOTHeightLinecsCunter
-	beq	FinishScanLine			; if  DOTHeightLinecsCunter == 0
+	beq	SkipDrawMissile			; if  DOTHeightLinecsCunter == 0
 								; not set missile draw for this scanline
 	
 	lda #2 			; to turn on visible for missile 0 in this
@@ -212,6 +235,11 @@ SkipActivateMissile
 	sta ENAM0
 
 	dec DOTHeightLinecsCunter	; decrement couter
+	jmp FinishScanLine
+
+SkipDrawMissile
+	lda #0
+	sta ENAM0	 	; turn off visible for missile 0
 
 FinishScanLine
 
