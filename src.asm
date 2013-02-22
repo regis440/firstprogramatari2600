@@ -160,9 +160,10 @@ SkipMoveRight
 	bit SWCHA 			
 	bne SkipMoveDown	
 	lda FaceYStartPopsition
-	cmp #192
+	cmp #191
 	beq SkipMoveDown		; skip if DOTYStartPopsition == 192
 	inc FaceYStartPopsition
+
 SkipMoveDown 
 
 ;	check is P0 joy is in down position
@@ -170,7 +171,7 @@ SkipMoveDown
 	bit SWCHA 		
 	bne SkipMoveUp
 	lda FaceYStartPopsition
-	cmp #8
+	cmp #7
 	beq SkipMoveUp		; skip if FaceYStartPopsition == face_height
 	dec FaceYStartPopsition
 SkipMoveUp 
@@ -226,21 +227,6 @@ WaitForVblank
 ;	68 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 62 
 ScanLoop	
 
-	cpy FaceYStartPopsition	; compare y reg with FaceYStartPopsition 
-							; value
-	bne SkipActivateFace	; if not equal, not set dot drow counter
-	
-	lda #7
-	sta FaceHeightLinecsCunter ; set height couter for dot to 8 lines
-							  ; we set 7 because this line is first
-							  ; and we skip decrementation
-	ldx #8
-	lda BigHeadGraphic-1,x 			
-	sta GRP0
-
-	bpl FinishScanLine
-
-SkipActivateFace
 
 	lda FaceHeightLinecsCunter
 	beq	SkipDrawFace			; if  DOTHeightLinecsCunter == 0
@@ -257,6 +243,13 @@ SkipActivateFace
 SkipDrawFace
 	lda #0
 	sta GRP0	 	; turn off visible for player 0 
+
+	cpy FaceYStartPopsition	; compare y reg with FaceYStartPopsition 
+							; value
+	bne FinishScanLine	; if not equal, not set dot drow counter
+	
+	lda #8
+	sta FaceHeightLinecsCunter ; set height couter for dot to 8 lines
 
 FinishScanLine
 
