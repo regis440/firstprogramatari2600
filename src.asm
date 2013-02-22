@@ -1,4 +1,4 @@
-;	move red DOT program atari 2600 Filip Pierscinski
+;	move red face program atari 2600 Filip Pierscinski
 ;
 ;	tel DASM that this is 6502 program
 
@@ -19,9 +19,9 @@
 
 ;	here we can set variables, atari have 128 byte of RAM
 ;	in address $80 to $FF
-DOTYStartPopsition 		= $81	; variable is stored on address $81
-DOTHeightLinecsCunter 	= $82
-BackgroundColorWhileButtonPressed 	= $83
+FaceYStartPopsition 		= $81	; variable is stored on address $81
+FaceHeightLinecsCunter 	= $82
+BackgroundColorWhileCollision 	= $83
 
 ;	begin of program with labe "Strat"
 ;	adress of "Strat" is $F000
@@ -51,16 +51,34 @@ ClearMem
 	bne ClearMem	; if not Z status flag set to 1 branch
 					; to ClearMem
 
-	lda #$FF
-	sta BackgroundColorWhileButtonPressed
+	lda #$0E
+	sta BackgroundColorWhileCollision
 
 ;	now we set color for player 0 and for his missile
 	lda #$42
 	sta COLUP0		; set color for player 0 to $42
 
+	lda #$0C
+	sta COLUP1		; set color for player 1 to $0C
+
+;	set width of line
+	
+	lda #$20 	; look to stell programing guide http://pl.scribd.com/doc/4740283/STELLA-Programmers-Guide
+	sta NUSIZ1	; NUSIZ0 sets the size and multiplying
+
+;	HMM1 is horizontal movment register it use two part 
+;	with two's complement notation ($X0 left $0X right nibble)
+	
+	lda #$F0 	; -1 move left
+	sta HMM1
+
+;	trurn on missile 1
+	lda #2 			
+	sta ENAM1
+
 ;	set default position of DOT
-	lda #8
-	sta DOTYStartPopsition
+	lda #80
+	sta FaceYStartPopsition
 
 ;	starts main loop
 ;	1) VSYNC
@@ -111,6 +129,8 @@ Main
 						; of controll reg P0 joy is 1 so it is not left
 	
 	ldx #$F0			; -1 -> slow move right
+	lda #%00001000		; D3 on REFP0 will mirror sprite
+	sta REFP0
 
 SkipMoveLeft
 
@@ -121,13 +141,13 @@ SkipMoveLeft
 	bne SkipMoveRight
 	
 	ldx #$10			; 1 -> slow move left
-
+	lda #%00000000		; D3 on REFP0 will mirror sprite
+	sta REFP0
 SkipMoveRight
 
-;	HMM0 is horizontal movment register it use two part 
+;	HMP0 is horizontal movment register it use two part 
 ;	with two's complement notation ($X0 left $0X right nibble)
-	
-	stx HMM0
+	stx HMP0
 
 ;	load to Y reg number of scanlines to draw
 
@@ -139,26 +159,21 @@ SkipMoveRight
 	lda #%00010000
 	bit SWCHA 			
 	bne SkipMoveDown	
-	lda DOTYStartPopsition
+	lda FaceYStartPopsition
 	cmp #192
 	beq SkipMoveDown		; skip if DOTYStartPopsition == 192
-	inc DOTYStartPopsition
+	inc FaceYStartPopsition
 SkipMoveDown 
 
 ;	check is P0 joy is in down position
 	lda #%00100000
 	bit SWCHA 		
 	bne SkipMoveUp
-	lda DOTYStartPopsition
+	lda FaceYStartPopsition
 	cmp #8
-	beq SkipMoveUp		; skip if DOTYStartPopsition == dot_height
-	dec DOTYStartPopsition
+	beq SkipMoveUp		; skip if FaceYStartPopsition == face_height
+	dec FaceYStartPopsition
 SkipMoveUp 
-
-;	set width of Dot
-	
-	lda #$20 	; look to stell programing guide http://pl.scribd.com/doc/4740283/STELLA-Programmers-Guide
-	sta NUSIZ0	; NUSIZ0 sets the size and multiplying
 
 ;	after set HMM0 we must wait minimum 24 cycles
 ;	to can set HMOVE
@@ -170,24 +185,26 @@ WaitForHMM0Set
 
 	sta HMOVE	; turn on horizontal motion
 
-	lda #%10000000 
-	bit INPT4
-	bne NotPressedButton
+;	check is collision between M1 an P1 
+	lda #%11000000 
+	bit CXM1P
+	beq NoCollision
 	
-	lda BackgroundColorWhileButtonPressed
+;	if it is set background color to BackgroundColorWhileCollision
+	lda BackgroundColorWhileCollision
 	sta COLUBK		
 
-	jmp SkipPressedButton
+	jmp SkipCollision
 
-NotPressedButton
+NoCollision
 
 ;	set background color to black (black color have val $00)
 	lda #$00
 	sta COLUBK		; store A value to background color
 					; register (COLUBK is addr from vcs.h)
 
-SkipPressedButton
-
+SkipCollision
+	sta CXCLR
 ;	====================END LOGIC====================
 ;	wait for Vblank end if we have spere cycles
 
@@ -209,37 +226,37 @@ WaitForVblank
 ;	68 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 62 
 ScanLoop	
 
-	cpy DOTYStartPopsition	; compare y reg with DOTYStartPopsition 
+	cpy FaceYStartPopsition	; compare y reg with FaceYStartPopsition 
 							; value
-	bne SkipActivateMissile ; if not equal, not set dot drow counter
+	bne SkipActivateFace	; if not equal, not set dot drow counter
 	
 	lda #7
-	sta DOTHeightLinecsCunter ; set height couter for dot to 8 lines
+	sta FaceHeightLinecsCunter ; set height couter for dot to 8 lines
 							  ; we set 7 because this line is first
 							  ; and we skip decrementation
+	ldx #8
+	lda BigHeadGraphic-1,x 			
+	sta GRP0
 
-	lda #2 			
-	sta ENAM0
+	bpl FinishScanLine
 
-	jmp FinishScanLine
+SkipActivateFace
 
-SkipActivateMissile
-
-	lda DOTHeightLinecsCunter
-	beq	SkipDrawMissile			; if  DOTHeightLinecsCunter == 0
+	lda FaceHeightLinecsCunter
+	beq	SkipDrawFace			; if  DOTHeightLinecsCunter == 0
 								; not set missile draw for this scanline
+	ldx FaceHeightLinecsCunter
 	
-	lda #2 			; to turn on visible for missile 0 in this
-					; scanline we must set 1 on index 1
-					; of control byte of missile 0 
-	sta ENAM0
+	lda BigHeadGraphic-1,x  			; to turn on visible for player 0 in this
+										; scanline we must set byte of data whic handle pixel info for this line
+	sta GRP0
 
-	dec DOTHeightLinecsCunter	; decrement couter
-	jmp FinishScanLine
+	dec FaceHeightLinecsCunter	; decrement couter
+	bpl FinishScanLine
 
-SkipDrawMissile
+SkipDrawFace
 	lda #0
-	sta ENAM0	 	; turn off visible for missile 0
+	sta GRP0	 	; turn off visible for player 0 
 
 FinishScanLine
 
@@ -271,6 +288,17 @@ OverScanWait
 ;	====================END LOGIC====================
 
 	jmp Main
+
+; here's the actual graphic! 
+BigHeadGraphic
+	.byte #%00111100
+	.byte #%01111110
+	.byte #%11000001
+	.byte #%10111111
+	.byte #%11111111
+	.byte #%11101011
+	.byte #%01111110
+	.byte #%00111100
 
 ; OK, last little bit of crap to take care of.
 ; there are two special memory locations, $FFFC and $FFFE
