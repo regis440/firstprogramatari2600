@@ -1,0 +1,5 @@
+#!/bin/bash
+
+rm src.bin
+
+tools/macosx/dasm src.asm -f3 -osrc.bin

@@ -83,7 +83,7 @@ ClearMem
 ;	starts main loop
 ;	1) VSYNC
 ;	2) vertical blank
-;	3) horizontal blnk | screen draw
+;	3) horizontal blank | screen draw
 ;	4) overscan
 
 Main
@@ -100,16 +100,16 @@ Main
 
 ;	waint for end of vertical blank (if we have logic 
 ;	we can put under sta TIM64T some code). One scanline take 
-;	76 cpu cycles and vertical blank tak 37 scanlines
+;	76 cpu cycles and vertical blank has 37 scanlines
 ;	76*37 = 2812 cpu cycles. We must subtract 5 cycles
-;	for set timer and 3 cycles to tak sta WSYNC to
+;	for set timer and 3 cycles to call sta WSYNC to
 ;	take next line plus 6 cycles for checking loop
 ;	2812 - 5 - 3 - 6 = 2798 
 
 	lda #43		; floor( 2798/64 ) = 43
 	sta TIM64T	; couter is decrement every 64 cycles
 
-;	from now to WaitForVblank we hane 2798 cycles to use
+;	from now to WaitForVblank we have 2798 cycles to use
 ;	===================BEGIN LOGIC===================
 
 ;	turn of VSYNC 
@@ -220,25 +220,26 @@ WaitForVblank
 	sta VBLANK  ; set end of vblank
 
 ;	scanline loop
-;	horizonatl blank have 68 cycles but we must subtract
+;	horizonatl blank have 22 cycles but we must subtract
 ;	sta WSYNC instruction (3 cycles), dey instruction(2 cycles) 
-;	and bne instruction (4 cycles), so every H blank have
-;	68 - 3 - 2 - 4 = 59 cycles except first scanline
-;	68 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 62 
+;	and bne instruction (3 cycles), so every H blank have
+;	22 - 3 - 2 - 3 = 14 cycles except first scanline
+;	22 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 16 
 ScanLoop	
 
 
-	lda FaceHeightLinecsCunter
-	beq	SkipDrawFace			; if  DOTHeightLinecsCunter == 0
-								; not set missile draw for this scanline
 	ldx FaceHeightLinecsCunter
-	
+	beq	SkipDrawFace			; if  FaceHeightLinecsCunter == 0
+								; not set missile draw for this scanline
+
 	lda BigHeadGraphic-1,x  			; to turn on visible for player 0 in this
-										; scanline we must set byte of data whic handle pixel info for this line
+										; scanline we must set byte of data which handle pixel info for this line
 	sta GRP0
 
 	dec FaceHeightLinecsCunter	; decrement couter
-	bpl FinishScanLine
+	jmp FinishScanLine
+
+;	ldx_zp 3 + beq 2 + lda_abs 4 + sta_zp 3 + dec 5 + jmp 3 = 20
 
 SkipDrawFace
 	lda #0
@@ -251,8 +252,9 @@ SkipDrawFace
 	lda #8
 	sta FaceHeightLinecsCunter ; set height couter for dot to 8 lines
 
-FinishScanLine
+;	finish scan line 8 cycles
 
+FinishScanLine
 	sta WSYNC
 
 	dey				; decrement scan line counter
