@@ -1,0 +1,5 @@
+#!/bin/bash
+
+open tools/macosx/stella.app
+
+

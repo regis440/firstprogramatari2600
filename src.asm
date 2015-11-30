@@ -220,13 +220,9 @@ WaitForVblank
 	sta VBLANK  ; set end of vblank
 
 ;	scanline loop
-;	horizonatl blank have 22 cycles but we must subtract
-;	sta WSYNC instruction (3 cycles), dey instruction(2 cycles) 
-;	and bne instruction (3 cycles), so every H blank have
-;	22 - 3 - 2 - 3 = 14 cycles except first scanline
-;	22 - (sta VBLANK (3 cycles) + sta WSYNC (3 cycles)) = 16 
+;	horizonatl blank have 22 cycles in which
+;	we have to set all necessary TIA registers
 ScanLoop	
-
 
 	ldx FaceHeightLinecsCunter
 	beq	SkipDrawFace			; if  FaceHeightLinecsCunter == 0
@@ -236,10 +232,10 @@ ScanLoop
 										; scanline we must set byte of data which handle pixel info for this line
 	sta GRP0
 
+;	ldx_zp 3 + beq 2 + lda_abs 4 + sta_zp 3 = 12
+
 	dec FaceHeightLinecsCunter	; decrement couter
 	jmp FinishScanLine
-
-;	ldx_zp 3 + beq 2 + lda_abs 4 + sta_zp 3 + dec 5 + jmp 3 = 20
 
 SkipDrawFace
 	lda #0

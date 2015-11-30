@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -f ./src.bin ];
+then
+rm ./src.bin
+fi
+
+tools/macosx/dasm src.asm -f3 -osrc.bin
+
