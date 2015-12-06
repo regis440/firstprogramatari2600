@@ -16,12 +16,45 @@
 
 	org $F000
 
+;	defines
+NtscSystem  = 1
+PalSystem   = 0
+SecamSystem = 0
+
+Ntsc IF NtscSystem
+
+VisableScanLinesCount = 192
+P0Color = $42
+P1Color	= $0C
+BackgroundColor = $82
+BackgroundColorWhileCollision 	= P1Color
+
+Ntsc ENDIF
+
+Pal IF PalSystem
+
+VisableScanLinesCount = 242
+P0Color = $62
+P1Color	= $0E
+BackgroundColor = $D2
+BackgroundColorWhileCollision 	= P1Color
+
+Pal ENDIF
+
+Secam IF SecamSystem
+
+VisableScanLinesCount = 242
+P0Color = $4
+P1Color	= $E
+BackgroundColor = $2
+BackgroundColorWhileCollision 	= P1Color
+
+Secam ENDIF
 
 ;	here we can set variables, atari have 128 byte of RAM
 ;	in address $80 to $FF
-FaceYStartPopsition 		= $81	; variable is stored on address $81
-FaceHeightLinecsCunter 	= $82
-BackgroundColorWhileCollision 	= $83
+FaceYStartPopsition 			= $81	; variable is stored on address $81
+FaceHeightLinecsCunter 			= $82
 
 ;	begin of program with labe "Strat"
 ;	adress of "Strat" is $F000
@@ -51,14 +84,11 @@ ClearMem
 	bne ClearMem	; if not Z status flag set to 1 branch
 					; to ClearMem
 
-	lda #$0E
-	sta BackgroundColorWhileCollision
-
 ;	now we set color for player 0 and for his missile
-	lda #$42
+	lda #P0Color
 	sta COLUP0		; set color for player 0 to $42
 
-	lda #$0C
+	lda #P1Color
 	sta COLUP1		; set color for player 1 to $0C
 
 ;	set width of line
@@ -151,7 +181,7 @@ SkipMoveRight
 
 ;	load to Y reg number of scanlines to draw
 
-	ldy #192	; TIA H resolution is 192 
+	ldy #VisableScanLinesCount	; TIA H resolution is PAL == 192 | NTSC == 242
 
 ;	set position of DOT
 
@@ -160,8 +190,8 @@ SkipMoveRight
 	bit SWCHA 			
 	bne SkipMoveDown	
 	lda FaceYStartPopsition
-	cmp #191
-	beq SkipMoveDown		; skip if DOTYStartPopsition == 192
+	cmp #[VisableScanLinesCount - 1]
+	beq SkipMoveDown		; skip if DOTYStartPopsition == VisableScanLinesCount - 1
 	inc FaceYStartPopsition
 
 SkipMoveDown 
@@ -192,7 +222,7 @@ WaitForHMM0Set
 	beq NoCollision
 	
 ;	if it is set background color to BackgroundColorWhileCollision
-	lda BackgroundColorWhileCollision
+	lda #BackgroundColorWhileCollision
 	sta COLUBK		
 
 	jmp SkipCollision
@@ -200,7 +230,7 @@ WaitForHMM0Set
 NoCollision
 
 ;	set background color to black (black color have val $00)
-	lda #$00
+	lda #BackgroundColor
 	sta COLUBK		; store A value to background color
 					; register (COLUBK is addr from vcs.h)
 
