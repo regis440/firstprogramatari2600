@@ -5,5 +5,5 @@ then
 rm ./src.bin
 fi
 
-tools/macosx/dasm src.asm -f3 -osrc.bin
+tools/macosx/dasm src.asm -f3 -lsrc_listing.txt -ssrc_symbols.txt -osrc.bin
 

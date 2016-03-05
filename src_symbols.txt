@@ -1,0 +1,111 @@
+--- Symbol List (sorted by symbol)
+AUDC0                    0015                  
+AUDC1                    0016                  
+AUDF0                    0017                  
+AUDF1                    0018                  
+AUDV0                    0019                  
+AUDV1                    001a                  
+BackgroundColor          0082              (R )
+BackgroundColorWhileCollision 000c                  
+BigHeadGraphic           f0fc              (R )
+ClearMem                 f007              (R )
+COLUBK                   0009              (R )
+COLUP0                   0006              (R )
+COLUP1                   0007              (R )
+COLUPF                   0008              (R )
+CTRLPF                   000a              (R )
+CXBLPF                   0036                  
+CXCLR                    002c                  
+CXM0FB                   0034                  
+CXM0P                    0030                  
+CXM1FB                   0035                  
+CXM1P                    0031                  
+CXP0FB                   0032                  
+CXP1FB                   0033                  
+CXPPMM                   0037                  
+ENABL                    001f                  
+ENAM0                    001d                  
+ENAM1                    001e                  
+EndOfScanline            f0d6              (R )
+FillBuffersForNextScanline f0af              (R )
+FirstScanlineFillPlayer0Buffer f0a2              (R )
+FirstScanlineSkipDrawPlayer0 f0a0              (R )
+GRP0                     001b              (R )
+GRP1                     001c                  
+HMBL                     0024                  
+HMCLR                    002b                  
+HMM0                     0022                  
+HMM1                     0023                  
+HMOVE                    002a              (R )
+HMP0                     0020              (R )
+HMP1                     0021                  
+INPT0                    0038                  
+INPT1                    0039                  
+INPT2                    003a                  
+INPT3                    003b                  
+INPT4                    003c                  
+INPT5                    003d                  
+INTIM                    0284              (R )
+LastScanlineIndex        00bf              (R )
+Main                     f020              (R )
+NtscSystem               0001              (R )
+NUSIZ0                   0004                  
+NUSIZ1                   0005                  
+OverScanWait             f0f4              (R )
+P0Color                  0042              (R )
+P1Color                  000c              (R )
+PalSystem                0000              (R )
+PF0                      000d              (R )
+PF1                      000e              (R )
+PF2                      000f              (R )
+Player0Buffer            0082              (R )
+Player0Height            0008              (R )
+Player0YStartPopsition   0081              (R )
+PlayfiledPF0             f104              (R )
+PlayfiledPF1             f1c4              (R )
+PlayfiledPF2             f284              (R )
+PlayfiledSize            0001              (R )
+PlayfileldPatternBuffer0 0083              (R )
+PlayfileldPatternBuffer1 0084              (R )
+PlayfileldPatternBuffer2 0085              (R )
+POSH2                    0011                  
+REFP0                    000b              (R )
+REFP1                    000c                  
+RESBL                    0014                  
+RESM0                    0012                  
+RESM1                    0013                  
+RESMP0                   0028                  
+RESMP1                   0029                  
+RESP0                    0010                  
+RESP1                    0011                  
+RSYNC                    0003                  
+SecamSystem              0000              (R )
+SkipDrawPlayer0          f0cc              (R )
+SkipMoveDown             f060              (R )
+SkipMoveLeft             f042              (R )
+SkipMoveRight            f04f              (R )
+SkipMoveUp               f06f              (R )
+Start                    f000              (R )
+SWACNT                   0281                  
+SWBCNT                   0283                  
+SWCHA                    0280              (R )
+SWCHB                    0282                  
+T1024I                   029f                  
+T1024T                   0297                  
+TIM1I                    029c                  
+TIM1T                    0294                  
+TIM64I                   029e                  
+TIM64T                   0296              (R )
+TIM8I                    029d                  
+TIM8T                    0295                  
+TIMINT                   0285                  
+VBLANK                   0001              (R )
+VDELBL                   0027                  
+VDELP0                   0025                  
+VDELP1                   0026                  
+VisableScanLinesCount    00c0              (R )
+VSYNC                    0000              (R )
+WaitForHMM0Set           f06f              (R )
+WaitForVblank            f0a6              (R )
+WSYNC                    0002              (R )
+--- End of Symbol List.
