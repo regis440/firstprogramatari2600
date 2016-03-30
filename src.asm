@@ -51,8 +51,8 @@ BackgroundColorWhileCollision = P1Color
 
 #endif
 
-PlayfiledSize = 1
-Player0Height = 8
+PlayfiledSize = 4
+Player0Height = 10
 LastScanlineIndex = VisableScanLinesCount - 1
 
 ;	here we can set variables, atari have 128 byte of RAM
@@ -62,9 +62,6 @@ Player0YStartPopsition 		= $81	; variable is stored on address $81
 
 ;	draw buffers
 Player0Buffer 		 		= $82
-PlayfileldPatternBuffer0	= $83
-PlayfileldPatternBuffer1	= $84
-PlayfileldPatternBuffer2	= $85
 
 ;	begin of program with labe "Strat"
 ;	adress of "Strat" is $F000
@@ -108,7 +105,7 @@ ClearMem
 
 ;	now we set control flags for playfiels
 
-	lda #%00000001 ; bit on index 0 -> reflect playfield
+	lda #%00000000 ; bit on index 0 -> reflect playfield
 	sta CTRLPF
 
 ;;	set width of line
@@ -206,9 +203,9 @@ SkipMoveRight
 	bit SWCHA 			
 	bne SkipMoveDown	
 	lda Player0YStartPopsition
-	cmp #0
+	cmp #LastScanlineIndex
 	beq SkipMoveDown		; skip if Player0YStartPopsition == VisableScanLinesCount
-	dec Player0YStartPopsition
+	inc Player0YStartPopsition
 
 SkipMoveDown 
 
@@ -217,9 +214,9 @@ SkipMoveDown
 	bit SWCHA 		
 	bne SkipMoveUp
 	lda Player0YStartPopsition
-	cmp #LastScanlineIndex - Player0Height
+	cmp #Player0Height	
 	beq SkipMoveUp		; skip if Player0YStartPopsition == Player0Height
-	inc Player0YStartPopsition
+	dec Player0YStartPopsition
 SkipMoveUp 
 
 ;	after set HMP0 we must wait minimum 24 cycles
@@ -259,39 +256,28 @@ WaitForHMM0Set
 ;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ;	fill playfild buffers and set TIA playfild registers
+	ldy #LastScanlineIndex 							; load to Y reg index 0 of scanline to draw
 
-	lda PlayfiledPF0 
-	sta PlayfileldPatternBuffer0
-	sta PF0
-
-	lda PlayfiledPF1
-	sta PlayfileldPatternBuffer1
-	sta PF1
-	lda PlayfiledPF2
-	sta PlayfileldPatternBuffer2
-	sta PF2
+	lda #0
 
 ;	fill player0 buffer and set TIA player0 register
 ;	check is player0 on first scanline index
-	ldy #0 							; load to Y reg index 0 of scanline to draw
 	cpy Player0YStartPopsition		; compare y reg with Player0YStartPopsition 
 	bne FirstScanlineSkipDrawPlayer0
 
 ;	if on first scanline set player0 scanline number counter
-    ldx #Player0Height 				; (x height couter for player0) set index x register to height couter for player0
+    ldx #[Player0Height - 1] 		; (x height couter for player0) set index x register to height couter for player0
 
-	lda BigHeadGraphic - 1,x    	; (x height couter for player0) load first data row for player0
+	lda BigHeadGraphic,x    		; (x height couter for player0) load first data row for player0
 	
-	dex								; (x height couter for player0) decrement height couter for player0
-
 	jmp FirstScanlineFillPlayer0Buffer
 
 FirstScanlineSkipDrawPlayer0
-    ldx #0 							; (x height couter for player0) reset to 0 height couter for player0
+    ldx #1 							; (x height couter for player0) reset height couter for player0 to 1
+    								; in every step it is decrement and check is Carry Flag (P.C) not set 
 
 FirstScanlineFillPlayer0Buffer
 	sta Player0Buffer
-	sta GRP0
 
 ;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -307,85 +293,15 @@ WaitForVblank
 				; end scanline so we wait for finish
 
 	sta VBLANK  ; set end of vblank
-	
+											; sta_zp 3 = 3		
+	nop 									; nop 2    = 5
+
 ;	scanlines loop
 FillBuffersForNextScanline	
 
 ;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-;	!!!BEGIN OF SCANLINE AFTER SET TIA REGISTER!!!!
-;	!!!!!!!!53 cycle for scanline logic!!!!!!!!!!!!
-;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	iny 	; next scanline index to draw 			; iny 2 		= 2
-
-;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-;	!!!!!!FILL DRAW BUFFERS FOR NEXT SCANLINE!!!!!!
-;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-;	fill playfild buffers for next scanline 
-	lda PlayfiledPF0,y 								; lda_abs 4-5 	= 7
-	sta PlayfileldPatternBuffer0					; sta_zp 3 		= 10
-
-	lda PlayfiledPF1,y 								; lda_abs 4-5 	= 15
-	sta PlayfileldPatternBuffer1 					; sta_zp 3 		= 18
-	lda PlayfiledPF1,y 								; lda_abs 4-5 	= 23
-	sta PlayfileldPatternBuffer2 					; sta_zp 3 		= 26
-
-;	player 0 draw buffer setup
-	cpx #0 						 					; cpx_im 2 		= 28
-;	(x height couter for player0) if height couter for player0 == 0
-;	not set player0 draw for this scanline
-	beq	SkipDrawPlayer0								
-													; beq 2 		= 30
-
-	lda BigHeadGraphic-1,x  						; lda_abs 4-5 	= 35	
-; 	to turn on visible for player 0 in this
-;	scanline we must set byte of data which handle pixel info for this line
-	sta Player0Buffer 								; sta_zp 3 		= 38
-
-;	(x height couter for player0) decrement height couter for player0
-	dex 						 					; dex 2 		= 41
-	jmp EndOfScanline 								; jmp 3 		= 44
-													; lda_zp 3 		= 47
-													; sta_zp 3 		= 50
-													;---------------->HORIZONTAL BLANK
-SkipDrawPlayer0
-													; beq 3-4 		= 32
-	lda #0 											; lda_im 2 		= 34
-;	turn off visible for player 0
-	sta Player0Buffer								; sta_zp 3		= 37 	 
-
-	cpy Player0YStartPopsition						; cpy_zp 3 		= 40
-;	compare y reg with Player0YStartPopsition 
-;	value
-													; bne 3-4 		= 44
-													; lda_zp 3 		= 47
-													; sta_zp 3 		= 50
-													;---------------->HORIZONTAL BLANK
-	bne EndOfScanline	
-;	if not equal, not set player0 draw counter
-													; bne 2 		= 42
-; 	(x height couter for player0) set height couter for player0 to Player0Height lines
-	ldx #Player0Height 								; ldx_im 2 		= 44
-
-													; lda_zp 3 		= 47
-													; sta_zp 3 		= 50
-													;---------------->HORIZONTAL BLANK
-
-EndOfScanline
-
-	lda PlayfileldPatternBuffer0 ; to reduce instr count in vblank first playfield patern is stored directly in accumulator
-
-;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-;	!!!!!!!!!!!!!!!END OF SCANLINE!!!!!!!!!!!!!!!!!
-;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	sta WSYNC
-
-;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ;	!!!!!!!!!!!!!!!BEGIN OF SCANLINE!!!!!!!!!!!!!!!
 ;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 ;	!!!!!!!!!!!!!!HORIZONTAL BLANK!!!!!!!!!!!!!!!!!
 ;	!!!horizonatl blank have 22 cycles in which!!!!
@@ -396,20 +312,91 @@ EndOfScanline
 ;	!!!!SET TIA REGISTERS FOR CURRENT SCANLINE!!!!!
 ;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-	sta PF0 						; sta_zp 3
+	lda Player0Buffer 	 						; lda_zp 3 = 9
+	sta GRP0 									; sta_zp 3 = 12
 
-	lda PlayfileldPatternBuffer1	; lda_zp 3 = 6
-	sta PF1 						; sta_zp 3 = 9
-	lda PlayfileldPatternBuffer2	; lda_zp 3 = 12
-	sta PF2 						; sta_zp 3 = 15
-
-	lda Player0Buffer 	 			; lda_zp 3 = 18
-	sta GRP0 						; sta_zp 3 = 21
+	lda LeftPlayfiledPF0,y 						; lda_abs 4-5 = 17 
+	sta PF0 									; sta_zp 3 	  = 20
 
 ;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+; 	!!!!!!!!!!!!!!!!!END OF VBLANK!!!!!!!!!!!!!!!!!
+;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-	cpy #LastScanlineIndex 	; last scanline index to calculate is VisableScanLinesCount-1 
-	bne	FillBuffersForNextScanline	; if couter not 1 repeat
+;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+;	!!!BEGIN OF SCANLINE AFTER SET TIA REGISTER!!!!
+;	!!!!!!!!53 cycle for scanline logic!!!!!!!!!!!!
+;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	lda LeftPlayfiledPF1,y 							; lda_abs 4-5 = 25 	| 3		
+	sta PF1 										; sta_zp 3 	  = 28 	| 6
+
+	lda LeftPlayfiledPF2,y 							; lda_abs 4-5 = 33 	| 11
+	sta PF2 										; sta_zp 3 	  = 36 	| 14
+  	
+; 	after (4 [PF blocks] * 4 [pxels]) / 3 [cycles per pixel] = 6 visable scanline cycles we can set again PF0
+	lda RightPlayfiledPF0,y 						; lda_abs 4-5 = 41  | 19 	 
+	sta PF0 										; sta_zp 3 	  = 44  | 22
+
+; 	after (12 [PF blocks] * 4 [pxels]) / 3 [cycles per pixel] = 17 visable scanline cycles we can set again PF1
+	lda RightPlayfiledPF1,y 						; lda_abs 4-5 = 49 	| 27
+	sta PF1 										; sta_zp 3 	  = 51  | 30
+
+; 	after (20 [PF blocks] * 4 [pxels]) / 3 [cycles per pixel] = 27 visable scanline cycles we can set again PF2
+	lda RightPlayfiledPF2,y 						; lda_abs 4-5 = 56 	| 35
+	sta PF2 										; sta_zp 3 	  = 59  | 38
+
+;	player 0 draw buffer setup
+	dex 						 					; dex 2 	  = 61 	
+;	(x height couter for player0) if height couter for player0 == 1
+;	not set player0 draw for this scanline
+	beq	SkipDrawPlayer0								
+													; beq 2 	  = 63 	
+;	(x height couter for player0) decrement height couter for player0
+	lda BigHeadGraphic,x  							; lda_abs 4-5 = 68	
+;	turn off visible for player 0 for index x == 1
+
+; 	to turn on visible for player 0 in this
+;	scanline we must set byte of data which handle pixel info for this line
+	sta Player0Buffer 								; sta_zp 3 	  = 71 	
+
+	jmp EndOfScanline 								; jmp 3 	  = 74 	
+
+													; sta_zp 3 	  = 77 !!!! 	
+													;---------------->HORIZONTAL BLANK
+SkipDrawPlayer0
+													; beq 3-4 	  = 65 	
+	ldx #1 											; lda_im 2 	  = 67 		
+	; (x height couter for player0) reset height couter for player0 to 1
+    ; in every step it is decrement and check is Carry Flag (P.C) not set  
+
+	cpy Player0YStartPopsition						; cpy_zp 3 	  = 70	
+;	compare y reg with Player0YStartPopsition 
+;	value
+													; bne 3-4 	  = 74 	
+
+													; sta_zp 3 	  = 77 !!! 	
+													;---------------->HORIZONTAL BLANK
+	bne EndOfScanline	
+;	if not equal, not set player0 draw counter
+													; bne 2 		= 72 	
+; 	(x height couter for player0) set height couter for player0 to Player0Height lines
+	ldx #Player0Height 								; ldx_im 2 		= 74 	
+
+													; sta_zp 3 		= 77 !!! 	
+													;---------------->HORIZONTAL BLANK
+
+EndOfScanline
+
+;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+;	!!!!!!!!!!!!!!!END OF SCANLINE!!!!!!!!!!!!!!!!!
+;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	sta WSYNC
+
+; 	next scanline index to draw 
+	dey 							; dey 2 	  = 2
+	bne	FillBuffersForNextScanline	; bne 3-4 	  = 6
+; 	if couter not 1 repeat
 
 ; 	now finish last scan line with sta WSYNC and turn on
 ;	VBLANK
@@ -437,6 +424,8 @@ OverScanWait
 
 ; here's the actual graphic! 
 BigHeadGraphic
+	.byte #%00000000
+	.byte #%00000000
 	.byte #%00111100
 	.byte #%01111110
 	.byte #%11000001
@@ -446,39 +435,113 @@ BigHeadGraphic
 	.byte #%01111110
 	.byte #%00111100
 
-;	playfield data is fliped vertical (upsidedown)
-PlayfiledPF0
+LeftPlatformPosition = 100
+
+LeftPlayfiledPF0
 	REPEAT PlayfiledSize
 	.byte #%11111111
 	REPEND
-	REPEAT [VisableScanLinesCount - 2*PlayfiledSize]
+	REPEAT [LeftPlatformPosition]
+	.byte #%00010000
+	REPEND
+	REPEAT [PlayfiledSize]
+	.byte #%11111111
+	REPEND
+	REPEAT [VisableScanLinesCount - LeftPlatformPosition - 3*PlayfiledSize]
 	.byte #%00010000
 	REPEND
 	REPEAT PlayfiledSize
-	.byte #%11111111
+	.byte #%00010000
 	REPEND
 
-PlayfiledPF1
+LeftPlayfiledPF1
 	REPEAT PlayfiledSize
 	.byte #%11111111
 	REPEND
-	REPEAT [VisableScanLinesCount - 2*PlayfiledSize]
+	REPEAT [LeftPlatformPosition]
+	.byte #%00000000
+	REPEND
+	REPEAT [PlayfiledSize]
+	.byte #%11111111
+	REPEND
+	REPEAT [VisableScanLinesCount - LeftPlatformPosition - 3*PlayfiledSize]
 	.byte #%00000000
 	REPEND
 	REPEAT PlayfiledSize
-	.byte #%11111111
+	.byte #%00000000
 	REPEND
 
-PlayfiledPF2
+LeftPlayfiledPF2
 	REPEAT PlayfiledSize
 	.byte #%11111111
 	REPEND
-	REPEAT [VisableScanLinesCount - 2*PlayfiledSize]
+	REPEAT [LeftPlatformPosition]
+	.byte #%00000000
+	REPEND
+	REPEAT [PlayfiledSize]
+	.byte #%11111111
+	REPEND
+	REPEAT [VisableScanLinesCount - LeftPlatformPosition - 3*PlayfiledSize]
 	.byte #%00000000
 	REPEND
 	REPEAT PlayfiledSize
+	.byte #%00000000
+	REPEND
+
+
+RightPlatformPosition = 50
+
+RightPlayfiledPF0
+	REPEAT PlayfiledSize
 	.byte #%11111111
 	REPEND
+	REPEAT [RightPlatformPosition]
+	.byte #%00000000
+	REPEND
+	REPEAT [PlayfiledSize]
+	.byte #%11111111
+	REPEND
+	REPEAT [VisableScanLinesCount - RightPlatformPosition - 3*PlayfiledSize]
+	.byte #%00000000
+	REPEND
+	REPEAT PlayfiledSize
+	.byte #%00000000
+	REPEND
+
+RightPlayfiledPF1
+	REPEAT PlayfiledSize
+	.byte #%11111111
+	REPEND
+	REPEAT [RightPlatformPosition]
+	.byte #%00000000
+	REPEND
+	REPEAT [PlayfiledSize]
+	.byte #%11111111
+	REPEND
+	REPEAT [VisableScanLinesCount - RightPlatformPosition - 3*PlayfiledSize]
+	.byte #%00000000
+	REPEND
+	REPEAT PlayfiledSize
+	.byte #%00000000
+	REPEND
+
+RightPlayfiledPF2
+	REPEAT PlayfiledSize
+	.byte #%11111111
+	REPEND
+	REPEAT [RightPlatformPosition]
+	.byte #%10000000
+	REPEND
+	REPEAT [PlayfiledSize]
+	.byte #%11111111
+	REPEND
+	REPEAT [VisableScanLinesCount - RightPlatformPosition - 3*PlayfiledSize]
+	.byte #%10000000
+	REPEND
+	REPEAT PlayfiledSize
+	.byte #%10000000
+	REPEND
+
 ; OK, last little bit of crap to take care of.
 ; there are two special memory locations, $FFFC and $FFFE
 ; When the atari starts up, a "reset" is done (which has nothing to do with

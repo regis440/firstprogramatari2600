@@ -7,7 +7,7 @@ AUDV0                    0019
 AUDV1                    001a                  
 BackgroundColor          0082              (R )
 BackgroundColorWhileCollision 000c                  
-BigHeadGraphic           f0fc              (R )
+BigHeadGraphic           f0e4              (R )
 ClearMem                 f007              (R )
 COLUBK                   0009              (R )
 COLUP0                   0006              (R )
@@ -26,10 +26,10 @@ CXPPMM                   0037
 ENABL                    001f                  
 ENAM0                    001d                  
 ENAM1                    001e                  
-EndOfScanline            f0d6              (R )
-FillBuffersForNextScanline f0af              (R )
-FirstScanlineFillPlayer0Buffer f0a2              (R )
-FirstScanlineSkipDrawPlayer0 f0a0              (R )
+EndOfScanline            f0cf              (R )
+FillBuffersForNextScanline f09a              (R )
+FirstScanlineFillPlayer0Buffer f08e              (R )
+FirstScanlineSkipDrawPlayer0 f08c              (R )
 GRP0                     001b              (R )
 GRP1                     001c                  
 HMBL                     0024                  
@@ -47,11 +47,15 @@ INPT4                    003c
 INPT5                    003d                  
 INTIM                    0284              (R )
 LastScanlineIndex        00bf              (R )
+LeftPlatformPosition     0064              (R )
+LeftPlayfiledPF0         f0ee              (R )
+LeftPlayfiledPF1         f1ae              (R )
+LeftPlayfiledPF2         f26e              (R )
 Main                     f020              (R )
 NtscSystem               0001              (R )
 NUSIZ0                   0004                  
 NUSIZ1                   0005                  
-OverScanWait             f0f4              (R )
+OverScanWait             f0dc              (R )
 P0Color                  0042              (R )
 P1Color                  000c              (R )
 PalSystem                0000              (R )
@@ -59,15 +63,9 @@ PF0                      000d              (R )
 PF1                      000e              (R )
 PF2                      000f              (R )
 Player0Buffer            0082              (R )
-Player0Height            0008              (R )
+Player0Height            000a              (R )
 Player0YStartPopsition   0081              (R )
-PlayfiledPF0             f104              (R )
-PlayfiledPF1             f1c4              (R )
-PlayfiledPF2             f284              (R )
-PlayfiledSize            0001              (R )
-PlayfileldPatternBuffer0 0083              (R )
-PlayfileldPatternBuffer1 0084              (R )
-PlayfileldPatternBuffer2 0085              (R )
+PlayfiledSize            0004              (R )
 POSH2                    0011                  
 REFP0                    000b              (R )
 REFP1                    000c                  
@@ -78,9 +76,13 @@ RESMP0                   0028
 RESMP1                   0029                  
 RESP0                    0010                  
 RESP1                    0011                  
+RightPlatformPosition    0032              (R )
+RightPlayfiledPF0        f32e              (R )
+RightPlayfiledPF1        f3ee              (R )
+RightPlayfiledPF2        f4ae              (R )
 RSYNC                    0003                  
 SecamSystem              0000              (R )
-SkipDrawPlayer0          f0cc              (R )
+SkipDrawPlayer0          f0c7              (R )
 SkipMoveDown             f060              (R )
 SkipMoveLeft             f042              (R )
 SkipMoveRight            f04f              (R )
@@ -106,6 +108,6 @@ VDELP1                   0026
 VisableScanLinesCount    00c0              (R )
 VSYNC                    0000              (R )
 WaitForHMM0Set           f06f              (R )
-WaitForVblank            f0a6              (R )
+WaitForVblank            f090              (R )
 WSYNC                    0002              (R )
 --- End of Symbol List.

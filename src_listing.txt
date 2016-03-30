@@ -134,8 +134,8 @@
      51  f000				  -
      52  f000					      endif
      53  f000
-     54  f000		       00 01	   PlayfiledSize =	1
-     55  f000		       00 08	   Player0Height =	8
+     54  f000		       00 04	   PlayfiledSize =	4
+     55  f000		       00 0a	   Player0Height =	10
      56  f000		       00 bf	   LastScanlineIndex =	VisableScanLinesCount - 1
      57  f000
      58  f000							;	here we can set variables, atari have 128 byte of RAM
@@ -145,725 +145,763 @@
      62  f000
      63  f000							;	draw buffers
      64  f000		       00 82	   Player0Buffer =	$82
-     65  f000		       00 83	   PlayfileldPatternBuffer0 =	$83
-     66  f000		       00 84	   PlayfileldPatternBuffer1 =	$84
-     67  f000		       00 85	   PlayfileldPatternBuffer2 =	$85
+     65  f000
+     66  f000							;	begin of program with labe "Strat"
+     67  f000							;	adress of "Strat" is $F000
      68  f000
-     69  f000							;	begin of program with labe "Strat"
-     70  f000							;	adress of "Strat" is $F000
-     71  f000
-     72  f000				   Start
+     69  f000				   Start
+     70  f000
+     71  f000							;	set inital data for interupt, stack ptr,
+     72  f000							;	staus flags
      73  f000
-     74  f000							;	set inital data for interupt, stack ptr,
-     75  f000							;	staus flags
-     76  f000
-     77  f000		       78		      sei		; disable interrupts
-     78  f001		       d8		      cld		; disable decimal mode
-     79  f002
-     80  f002		       a2 ff		      ldx	#$FF	; load $FF to register X
-     81  f004
-     82  f004		       9a		      txs		; transfer value from X reg
-     83  f005							; to stack pointer reg
-     84  f005							; (reset stack pointer)
-     85  f005
-     86  f005							;	clear memory form $00 to $FF
-     87  f005							;	atari ram is from $80 to $FF
-     88  f005							;	from $00 to $7F are maped TIA regs
-     89  f005
-     90  f005		       a9 00		      lda	#00	; put $0 to A register, X isset to $FF
-     91  f007				   ClearMem
-     92  f007		       95 00		      sta	0,X	; store value of A in page 0 + offset X
-     93  f009		       ca		      dex		; decrement X reg
-     94  f00a		       d0 fb		      bne	ClearMem	; if not Z status flag set to 1 branch
-     95  f00c							; to ClearMem
-     96  f00c
-     97  f00c							;	now we set color for player 0 and for his missile
-     98  f00c		       a9 42		      lda	#P0Color
-     99  f00e		       85 06		      sta	COLUP0	; set color for player 0 to $42
-    100  f010
-    101  f010		       a9 0c		      lda	#P1Color
-    102  f012		       85 07		      sta	COLUP1	; set color for player 1 to $0C
-    103  f014
-    104  f014							;	now we set color for playfiels 0,1,2 and for his missile
-    105  f014
-    106  f014		       a9 42		      lda	#P0Color
-    107  f016		       85 08		      sta	COLUPF
-    108  f018
-    109  f018							;	now we set control flags for playfiels
-    110  f018
-    111  f018		       a9 01		      lda	#%00000001	; bit on index 0 -> reflect playfield
-    112  f01a		       85 0a		      sta	CTRLPF
-    113  f01c
-    114  f01c							;;	set width of line
+     74  f000		       78		      sei		; disable interrupts
+     75  f001		       d8		      cld		; disable decimal mode
+     76  f002
+     77  f002		       a2 ff		      ldx	#$FF	; load $FF to register X
+     78  f004
+     79  f004		       9a		      txs		; transfer value from X reg
+     80  f005							; to stack pointer reg
+     81  f005							; (reset stack pointer)
+     82  f005
+     83  f005							;	clear memory form $00 to $FF
+     84  f005							;	atari ram is from $80 to $FF
+     85  f005							;	from $00 to $7F are maped TIA regs
+     86  f005
+     87  f005		       a9 00		      lda	#00	; put $0 to A register, X isset to $FF
+     88  f007				   ClearMem
+     89  f007		       95 00		      sta	0,X	; store value of A in page 0 + offset X
+     90  f009		       ca		      dex		; decrement X reg
+     91  f00a		       d0 fb		      bne	ClearMem	; if not Z status flag set to 1 branch
+     92  f00c							; to ClearMem
+     93  f00c
+     94  f00c							;	now we set color for player 0 and for his missile
+     95  f00c		       a9 42		      lda	#P0Color
+     96  f00e		       85 06		      sta	COLUP0	; set color for player 0 to $42
+     97  f010
+     98  f010		       a9 0c		      lda	#P1Color
+     99  f012		       85 07		      sta	COLUP1	; set color for player 1 to $0C
+    100  f014
+    101  f014							;	now we set color for playfiels 0,1,2 and for his missile
+    102  f014
+    103  f014		       a9 42		      lda	#P0Color
+    104  f016		       85 08		      sta	COLUPF
+    105  f018
+    106  f018							;	now we set control flags for playfiels
+    107  f018
+    108  f018		       a9 00		      lda	#%00000000	; bit on index 0 -> reflect playfield
+    109  f01a		       85 0a		      sta	CTRLPF
+    110  f01c
+    111  f01c							;;	set width of line
+    112  f01c							;
+    113  f01c							;	lda #$20	; look to stell programing guide http://pl.scribd.com/doc/4740283/STELLA-Programmers-Guide
+    114  f01c							;	sta NUSIZ1	; NUSIZ0 sets the size and multiplying
     115  f01c							;
-    116  f01c							;	lda #$20	; look to stell programing guide http://pl.scribd.com/doc/4740283/STELLA-Programmers-Guide
-    117  f01c							;	sta NUSIZ1	; NUSIZ0 sets the size and multiplying
+    116  f01c							;;	HMM1 is horizontal movment register it use two part
+    117  f01c							;;	with two's complement notation ($X0 left $0X right nibble)
     118  f01c							;
-    119  f01c							;;	HMM1 is horizontal movment register it use two part
-    120  f01c							;;	with two's complement notation ($X0 left $0X right nibble)
+    119  f01c							;	lda #$F0	; -1 move left
+    120  f01c							;	sta HMM1
     121  f01c							;
-    122  f01c							;	lda #$F0	; -1 move left
-    123  f01c							;	sta HMM1
-    124  f01c							;
-    125  f01c							;;	trurn on missile 1
-    126  f01c							;	lda #2
-    127  f01c							;	sta ENAM1
-    128  f01c
-    129  f01c							;	set default position of player0
-    130  f01c		       a9 50		      lda	#80
-    131  f01e		       85 81		      sta	Player0YStartPopsition
-    132  f020
-    133  f020							;	starts main loop
-    134  f020							;	1) VSYNC
-    135  f020							;	2) vertical blank
-    136  f020							;	3) horizontal blank | screen draw
-    137  f020							;	4) overscan
-    138  f020
-    139  f020				   Main
+    122  f01c							;;	trurn on missile 1
+    123  f01c							;	lda #2
+    124  f01c							;	sta ENAM1
+    125  f01c
+    126  f01c							;	set default position of player0
+    127  f01c		       a9 50		      lda	#80
+    128  f01e		       85 81		      sta	Player0YStartPopsition
+    129  f020
+    130  f020							;	starts main loop
+    131  f020							;	1) VSYNC
+    132  f020							;	2) vertical blank
+    133  f020							;	3) horizontal blank | screen draw
+    134  f020							;	4) overscan
+    135  f020
+    136  f020				   Main
+    137  f020
+    138  f020							;	set bit with index 1 of VSYNC control byte to 1
+    139  f020							;	this enable VSYNC (control byte have addr $1D)
     140  f020
-    141  f020							;	set bit with index 1 of VSYNC control byte to 1
-    142  f020							;	this enable VSYNC (control byte have addr $1D)
-    143  f020
-    144  f020		       a9 02		      lda	#2	; binary 00000010
-    145  f022		       85 00		      sta	VSYNC
-    146  f024
-    147  f024		       85 02		      sta	WSYNC	; cpu wait to first scanline finish
-    148  f026		       85 02		      sta	WSYNC	; second scanline
-    149  f028		       85 02		      sta	WSYNC	; thrid scanline
-    150  f02a
-    151  f02a							;	waint for end of vertical blank (if we have logic
-    152  f02a							;	we can put under sta TIM64T some code). One scanline take
-    153  f02a							;	76 cpu cycles and vertical blank has 37 scanlines
-    154  f02a							;	76*37 = 2812 cpu cycles. We must subtract 5 cycles
-    155  f02a							;	for set timer and 3 cycles to call sta WSYNC to
-    156  f02a							;	take next line plus 6 cycles for checking loop
-    157  f02a							;	2812 - 5 - 3 - 6 = 2798
-    158  f02a
-    159  f02a		       a9 2b		      lda	#43	; floor( 2798/64 ) = 43
-    160  f02c		       8d 96 02 	      sta	TIM64T	; couter is decrement every 64 cycles
+    141  f020		       a9 02		      lda	#2	; binary 00000010
+    142  f022		       85 00		      sta	VSYNC
+    143  f024
+    144  f024		       85 02		      sta	WSYNC	; cpu wait to first scanline finish
+    145  f026		       85 02		      sta	WSYNC	; second scanline
+    146  f028		       85 02		      sta	WSYNC	; thrid scanline
+    147  f02a
+    148  f02a							;	waint for end of vertical blank (if we have logic
+    149  f02a							;	we can put under sta TIM64T some code). One scanline take
+    150  f02a							;	76 cpu cycles and vertical blank has 37 scanlines
+    151  f02a							;	76*37 = 2812 cpu cycles. We must subtract 5 cycles
+    152  f02a							;	for set timer and 3 cycles to call sta WSYNC to
+    153  f02a							;	take next line plus 6 cycles for checking loop
+    154  f02a							;	2812 - 5 - 3 - 6 = 2798
+    155  f02a
+    156  f02a		       a9 2b		      lda	#43	; floor( 2798/64 ) = 43
+    157  f02c		       8d 96 02 	      sta	TIM64T	; couter is decrement every 64 cycles
+    158  f02f
+    159  f02f							;	from now to WaitForVblank we have 2798 cycles to use
+    160  f02f							;	===================BEGIN LOGIC===================
     161  f02f
-    162  f02f							;	from now to WaitForVblank we have 2798 cycles to use
-    163  f02f							;	===================BEGIN LOGIC===================
-    164  f02f
-    165  f02f							;	turn of VSYNC
-    166  f02f
-    167  f02f		       a9 00		      lda	#0
-    168  f031		       85 00		      sta	VSYNC
-    169  f033
-    170  f033		       a2 00		      ldx	#$00	; slow move right
-    171  f035
-    172  f035							;	check is P0 joy is in left position
-    173  f035
-    174  f035		       a9 80		      lda	#%10000000
-    175  f037		       2c 80 02 	      bit	SWCHA	; SWCHA controll reg for joys
-    176  f03a							; hi 4 bits for player 0
-    177  f03a							; low 4 bits for player 1
-    178  f03a		       d0 06		      bne	SkipMoveLeft	; if not qual 0 it menas that on 3 bit
-    179  f03c							; of controll reg P0 joy is 1 so it is not left
-    180  f03c
-    181  f03c		       a2 f0		      ldx	#$F0	; -1 -> slow move right
-    182  f03e		       a9 08		      lda	#%00001000	; D3 on REFP0 will mirror sprite
-    183  f040		       85 0b		      sta	REFP0
-    184  f042
-    185  f042				   SkipMoveLeft
-    186  f042
-    187  f042							;	check is P0 joy is in right position
-    188  f042
-    189  f042		       a9 40		      lda	#%01000000
-    190  f044		       2c 80 02 	      bit	SWCHA
-    191  f047		       d0 06		      bne	SkipMoveRight
-    192  f049
-    193  f049		       a2 10		      ldx	#$10	; 1 -> slow move left
-    194  f04b		       a9 00		      lda	#%00000000	; D3 on REFP0 will mirror sprite
-    195  f04d		       85 0b		      sta	REFP0
-    196  f04f				   SkipMoveRight
-    197  f04f
-    198  f04f							;	HMP0 is horizontal movment register it use two part
-    199  f04f							;	with two's complement notation ($X0 left $0X right nibble)
-    200  f04f		       86 20		      stx	HMP0
-    201  f051
-    202  f051							;	set position of DOT
-    203  f051
-    204  f051							;	check is P0 joy is in up position
-    205  f051		       a9 10		      lda	#%00010000
-    206  f053		       2c 80 02 	      bit	SWCHA
-    207  f056		       d0 08		      bne	SkipMoveDown
-    208  f058		       a5 81		      lda	Player0YStartPopsition
-    209  f05a		       c9 00		      cmp	#0
-    210  f05c		       f0 02		      beq	SkipMoveDown	; skip if Player0YStartPopsition == VisableScanLinesCount
-    211  f05e		       c6 81		      dec	Player0YStartPopsition
-    212  f060
-    213  f060				   SkipMoveDown
-    214  f060
-    215  f060							;	check is P0 joy is in down position
-    216  f060		       a9 20		      lda	#%00100000
-    217  f062		       2c 80 02 	      bit	SWCHA
-    218  f065		       d0 08		      bne	SkipMoveUp
-    219  f067		       a5 81		      lda	Player0YStartPopsition
-    220  f069		       c9 b7		      cmp	#LastScanlineIndex - Player0Height
-    221  f06b		       f0 02		      beq	SkipMoveUp	; skip if Player0YStartPopsition == Player0Height
-    222  f06d		       e6 81		      inc	Player0YStartPopsition
-    223  f06f				   SkipMoveUp
+    162  f02f							;	turn of VSYNC
+    163  f02f
+    164  f02f		       a9 00		      lda	#0
+    165  f031		       85 00		      sta	VSYNC
+    166  f033
+    167  f033		       a2 00		      ldx	#$00	; slow move right
+    168  f035
+    169  f035							;	check is P0 joy is in left position
+    170  f035
+    171  f035		       a9 80		      lda	#%10000000
+    172  f037		       2c 80 02 	      bit	SWCHA	; SWCHA controll reg for joys
+    173  f03a							; hi 4 bits for player 0
+    174  f03a							; low 4 bits for player 1
+    175  f03a		       d0 06		      bne	SkipMoveLeft	; if not qual 0 it menas that on 3 bit
+    176  f03c							; of controll reg P0 joy is 1 so it is not left
+    177  f03c
+    178  f03c		       a2 f0		      ldx	#$F0	; -1 -> slow move right
+    179  f03e		       a9 08		      lda	#%00001000	; D3 on REFP0 will mirror sprite
+    180  f040		       85 0b		      sta	REFP0
+    181  f042
+    182  f042				   SkipMoveLeft
+    183  f042
+    184  f042							;	check is P0 joy is in right position
+    185  f042
+    186  f042		       a9 40		      lda	#%01000000
+    187  f044		       2c 80 02 	      bit	SWCHA
+    188  f047		       d0 06		      bne	SkipMoveRight
+    189  f049
+    190  f049		       a2 10		      ldx	#$10	; 1 -> slow move left
+    191  f04b		       a9 00		      lda	#%00000000	; D3 on REFP0 will mirror sprite
+    192  f04d		       85 0b		      sta	REFP0
+    193  f04f				   SkipMoveRight
+    194  f04f
+    195  f04f							;	HMP0 is horizontal movment register it use two part
+    196  f04f							;	with two's complement notation ($X0 left $0X right nibble)
+    197  f04f		       86 20		      stx	HMP0
+    198  f051
+    199  f051							;	set position of DOT
+    200  f051
+    201  f051							;	check is P0 joy is in up position
+    202  f051		       a9 10		      lda	#%00010000
+    203  f053		       2c 80 02 	      bit	SWCHA
+    204  f056		       d0 08		      bne	SkipMoveDown
+    205  f058		       a5 81		      lda	Player0YStartPopsition
+    206  f05a		       c9 bf		      cmp	#LastScanlineIndex
+    207  f05c		       f0 02		      beq	SkipMoveDown	; skip if Player0YStartPopsition == VisableScanLinesCount
+    208  f05e		       e6 81		      inc	Player0YStartPopsition
+    209  f060
+    210  f060				   SkipMoveDown
+    211  f060
+    212  f060							;	check is P0 joy is in down position
+    213  f060		       a9 20		      lda	#%00100000
+    214  f062		       2c 80 02 	      bit	SWCHA
+    215  f065		       d0 08		      bne	SkipMoveUp
+    216  f067		       a5 81		      lda	Player0YStartPopsition
+    217  f069		       c9 0a		      cmp	#Player0Height
+    218  f06b		       f0 02		      beq	SkipMoveUp	; skip if Player0YStartPopsition == Player0Height
+    219  f06d		       c6 81		      dec	Player0YStartPopsition
+    220  f06f				   SkipMoveUp
+    221  f06f
+    222  f06f							;	after set HMP0 we must wait minimum 24 cycles
+    223  f06f							;	to can set HMOVE
     224  f06f
-    225  f06f							;	after set HMP0 we must wait minimum 24 cycles
-    226  f06f							;	to can set HMOVE
-    227  f06f
-    228  f06f				   WaitForHMM0Set
-    229  f06f		       ad 84 02 	      lda	INTIM	; load TIM64T counter
-    230  f072		       c9 2a		      cmp	#42
-    231  f074		       10 f9		      bpl	WaitForHMM0Set
-    232  f076
-    233  f076		       85 2a		      sta	HMOVE	; turn on horizontal motion
-    234  f078
-    235  f078							;;	check is collision between M1 an P1
-    236  f078							;	lda #%11000000
-    237  f078							;	bit CXM1P
-    238  f078							;	beq NoCollision
-    239  f078							;
-    240  f078							;;	if it is set background color to BackgroundColorWhileCollision
-    241  f078							;	lda #BackgroundColorWhileCollision
-    242  f078							;	sta COLUBK
-    243  f078							;
-    244  f078							;	jmp SkipCollision
-    245  f078							;
-    246  f078							;NoCollision
-    247  f078
-    248  f078							;	set background color to black (black color have val $00)
-    249  f078		       a9 82		      lda	#BackgroundColor
-    250  f07a		       85 09		      sta	COLUBK	; store A value to background color
-    251  f07c							; register (COLUBK is addr from vcs.h)
-    252  f07c							;
-    253  f07c							;SkipCollision
-    254  f07c							;	sta CXCLR
-    255  f07c
+    225  f06f				   WaitForHMM0Set
+    226  f06f		       ad 84 02 	      lda	INTIM	; load TIM64T counter
+    227  f072		       c9 2a		      cmp	#42
+    228  f074		       10 f9		      bpl	WaitForHMM0Set
+    229  f076
+    230  f076		       85 2a		      sta	HMOVE	; turn on horizontal motion
+    231  f078
+    232  f078							;;	check is collision between M1 an P1
+    233  f078							;	lda #%11000000
+    234  f078							;	bit CXM1P
+    235  f078							;	beq NoCollision
+    236  f078							;
+    237  f078							;;	if it is set background color to BackgroundColorWhileCollision
+    238  f078							;	lda #BackgroundColorWhileCollision
+    239  f078							;	sta COLUBK
+    240  f078							;
+    241  f078							;	jmp SkipCollision
+    242  f078							;
+    243  f078							;NoCollision
+    244  f078
+    245  f078							;	set background color to black (black color have val $00)
+    246  f078		       a9 82		      lda	#BackgroundColor
+    247  f07a		       85 09		      sta	COLUBK	; store A value to background color
+    248  f07c							; register (COLUBK is addr from vcs.h)
+    249  f07c							;
+    250  f07c							;SkipCollision
+    251  f07c							;	sta CXCLR
+    252  f07c
+    253  f07c							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    254  f07c							;	!!!!!!!!!FILL DRAW BUFFERS AND SET!!!!!!!!!!!!!
+    255  f07c							;	!!!!!!TIA REGISTERS FOR FIRST SCANLINE!!!!!!!!!
     256  f07c							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    257  f07c							;	!!!!!!!!!FILL DRAW BUFFERS AND SET!!!!!!!!!!!!!
-    258  f07c							;	!!!!!!TIA REGISTERS FOR FIRST SCANLINE!!!!!!!!!
-    259  f07c							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    260  f07c
-    261  f07c							;	fill playfild buffers and set TIA playfild registers
-    262  f07c
-    263  f07c		       ad 04 f1 	      lda	PlayfiledPF0
-    264  f07f		       85 83		      sta	PlayfileldPatternBuffer0
-    265  f081		       85 0d		      sta	PF0
-    266  f083
-    267  f083		       ad c4 f1 	      lda	PlayfiledPF1
-    268  f086		       85 84		      sta	PlayfileldPatternBuffer1
-    269  f088		       85 0e		      sta	PF1
-    270  f08a		       ad 84 f2 	      lda	PlayfiledPF2
-    271  f08d		       85 85		      sta	PlayfileldPatternBuffer2
-    272  f08f		       85 0f		      sta	PF2
-    273  f091
-    274  f091							;	fill player0 buffer and set TIA player0 register
-    275  f091							;	check is player0 on first scanline index
-    276  f091		       a0 00		      ldy	#0	; load to Y reg index 0 of scanline to draw
-    277  f093		       c4 81		      cpy	Player0YStartPopsition	; compare y reg with Player0YStartPopsition
-    278  f095		       d0 09		      bne	FirstScanlineSkipDrawPlayer0
-    279  f097
-    280  f097							;	if on first scanline set player0 scanline number counter
-    281  f097		       a2 08		      ldx	#Player0Height	; set index x register to height couter for player0
-    282  f099
-    283  f099		       bd fb f0 	      lda	BigHeadGraphic - 1,x	; load first data row for player0
-    284  f09c
-    285  f09c		       ca		      dex		; decrement height couter for player0
-    286  f09d
-    287  f09d		       4c a2 f0 	      jmp	FirstScanlineFillPlayer0Buffer
-    288  f0a0
-    289  f0a0				   FirstScanlineSkipDrawPlayer0
-    290  f0a0		       a2 00		      ldx	#0	; reset to 0 height couter for player0
-    291  f0a2
-    292  f0a2				   FirstScanlineFillPlayer0Buffer
-    293  f0a2		       85 82		      sta	Player0Buffer
-    294  f0a4		       85 1b		      sta	GRP0
-    295  f0a6
-    296  f0a6							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    297  f0a6
-    298  f0a6							;	====================END LOGIC====================
-    299  f0a6							;	wait for Vblank end if we have spere cycles
-    300  f0a6
-    301  f0a6				   WaitForVblank
-    302  f0a6		       ad 84 02 	      lda	INTIM	; load TIM64T counter
-    303  f0a9		       d0 fb		      bne	WaitForVblank	; if TIM64T == 0 couter
-    304  f0ab							; branch to WaitForVblank
-    305  f0ab
-    306  f0ab		       85 02		      sta	WSYNC	; atari have somethig like 44 cycles to
-    307  f0ad							; end scanline so we wait for finish
-    308  f0ad
-    309  f0ad		       85 01		      sta	VBLANK	; set end of vblank
-    310  f0af
-    311  f0af							;	scanlines loop
-    312  f0af				   FillBuffersForNextScanline
-    313  f0af
-    314  f0af							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    315  f0af							;	!!!BEGIN OF SCANLINE AFTER SET TIA REGISTER!!!!
-    316  f0af							;	!!!!!!!!53 cycle for scanline logic!!!!!!!!!!!!
-    317  f0af							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    318  f0af
-    319  f0af		       c8		      iny		; next scanline index to draw			; iny 2		= 2
-    320  f0b0
-    321  f0b0							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    322  f0b0							;	!!!!!!FILL DRAW BUFFERS FOR NEXT SCANLINE!!!!!!
-    323  f0b0							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    324  f0b0
-    325  f0b0							;	fill playfild buffers for next scanline
-    326  f0b0		       b9 04 f1 	      lda	PlayfiledPF0,y	; lda_abs 4-5	= 7
-    327  f0b3		       85 83		      sta	PlayfileldPatternBuffer0	; sta_zp 3		= 10
-    328  f0b5
-    329  f0b5		       b9 c4 f1 	      lda	PlayfiledPF1,y	; lda_abs 4-5	= 15
-    330  f0b8		       85 84		      sta	PlayfileldPatternBuffer1	; sta_zp 3		= 18
-    331  f0ba		       b9 c4 f1 	      lda	PlayfiledPF1,y	; lda_abs 4-5	= 23
-    332  f0bd		       85 85		      sta	PlayfileldPatternBuffer2	; sta_zp 3		= 26
-    333  f0bf
-    334  f0bf							;	player 0 draw buffer setup
-    335  f0bf		       e0 00		      cpx	#0	; cpx_im 2		= 28
-    336  f0c1							;	if  Player0HeightLinecsCunter == 0
-    337  f0c1							;	not set player0 draw for this scanline
-    338  f0c1		       f0 09		      beq	SkipDrawPlayer0
-    339  f0c3							; beq 2		= 30
-    340  f0c3
-    341  f0c3		       bd fb f0 	      lda	BigHeadGraphic-1,x	; lda_abs 4-5	= 35
-    342  f0c6							;	to turn on visible for player 0 in this
-    343  f0c6							;	scanline we must set byte of data which handle pixel info for this line
-    344  f0c6		       85 82		      sta	Player0Buffer	; sta_zp 3		= 38
-    345  f0c8
-    346  f0c8		       ca		      dex		; dex 2		= 41
-    347  f0c9		       4c d6 f0 	      jmp	EndOfScanline	; jmp 3		= 44
-    348  f0cc							; lda_zp 3		= 47
-    349  f0cc							; sta_zp 3		= 50
-    350  f0cc							;---------------->HORIZONTAL BLANK
-    351  f0cc				   SkipDrawPlayer0
-    352  f0cc							; beq 3-4		= 32
-    353  f0cc		       a9 00		      lda	#0	; lda_im 2		= 34
-    354  f0ce							;	turn off visible for player 0
-    355  f0ce		       85 82		      sta	Player0Buffer	; sta_zp 3		= 37
-    356  f0d0
-    357  f0d0		       c4 81		      cpy	Player0YStartPopsition	; cpy_zp 3		= 40
-    358  f0d2							;	compare y reg with Player0YStartPopsition
-    359  f0d2							;	value
-    360  f0d2							; bne 3-4		= 44
-    361  f0d2							; lda_zp 3		= 47
-    362  f0d2							; sta_zp 3		= 50
-    363  f0d2							;---------------->HORIZONTAL BLANK
-    364  f0d2		       d0 02		      bne	EndOfScanline
-    365  f0d4							;	if not equal, not set player0 draw counter
-    366  f0d4							; bne 2		= 42
-    367  f0d4							;	set height couter for player0 to Player0Height lines in index x register
-    368  f0d4		       a2 08		      ldx	#Player0Height	; ldx_im 2		= 44
-    369  f0d6
-    370  f0d6							; lda_zp 3		= 47
-    371  f0d6							; sta_zp 3		= 50
-    372  f0d6							;---------------->HORIZONTAL BLANK
-    373  f0d6
-    374  f0d6				   EndOfScanline
-    375  f0d6
-    376  f0d6		       a5 83		      lda	PlayfileldPatternBuffer0	; to reduce instr count in vblank first playfield patern is stored directly in accumulator
-    377  f0d8
-    378  f0d8							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    379  f0d8							;	!!!!!!!!!!!!!!!END OF SCANLINE!!!!!!!!!!!!!!!!!
-    380  f0d8							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    381  f0d8
-    382  f0d8		       85 02		      sta	WSYNC
-    383  f0da
-    384  f0da							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    385  f0da							;	!!!!!!!!!!!!!!!BEGIN OF SCANLINE!!!!!!!!!!!!!!!
-    386  f0da							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    387  f0da
-    388  f0da
-    389  f0da							;	!!!!!!!!!!!!!!HORIZONTAL BLANK!!!!!!!!!!!!!!!!!
-    390  f0da							;	!!!horizonatl blank have 22 cycles in which!!!!
-    391  f0da							;	!!we have to set all necessary TIA registers!!!
-    392  f0da							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    393  f0da
-    394  f0da							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    395  f0da							;	!!!!SET TIA REGISTERS FOR CURRENT SCANLINE!!!!!
-    396  f0da							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    397  f0da
-    398  f0da		       85 0d		      sta	PF0	; sta_zp 3
-    399  f0dc
-    400  f0dc		       a5 84		      lda	PlayfileldPatternBuffer1	; lda_zp 3 = 6
-    401  f0de		       85 0e		      sta	PF1	; sta_zp 3 = 9
-    402  f0e0		       a5 85		      lda	PlayfileldPatternBuffer2	; lda_zp 3 = 12
-    403  f0e2		       85 0f		      sta	PF2	; sta_zp 3 = 15
-    404  f0e4
-    405  f0e4		       a5 82		      lda	Player0Buffer	; lda_zp 3 = 18
-    406  f0e6		       85 1b		      sta	GRP0	; sta_zp 3 = 21
-    407  f0e8
-    408  f0e8							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    409  f0e8
-    410  f0e8		       c0 bf		      cpy	#LastScanlineIndex	; last scanline index to calculate is VisableScanLinesCount-1
-    411  f0ea		       d0 c3		      bne	FillBuffersForNextScanline	; if couter not 1 repeat
-    412  f0ec
-    413  f0ec							;	now finish last scan line with sta WSYNC and turn on
-    414  f0ec							;	VBLANK
-    415  f0ec
-    416  f0ec		       a9 02		      lda	#2
-    417  f0ee		       85 02		      sta	WSYNC
-    418  f0f0		       85 01		      sta	VBLANK
-    419  f0f2
-    420  f0f2							;	count down 30 scanlines of overscan we can put
-    421  f0f2							;	here logic code
-    422  f0f2
-    423  f0f2							;	beter then emply loop put here some code
-    424  f0f2							;	2280 - 3(jmp instruction) cycles
-    425  f0f2							;	===================BEGIN LOGIC===================
-    426  f0f2
-    427  f0f2		       a2 1e		      ldx	#30
-    428  f0f4				   OverScanWait
-    429  f0f4		       85 02		      sta	WSYNC
-    430  f0f6		       ca		      dex
-    431  f0f7		       d0 fb		      bne	OverScanWait
-    432  f0f9
-    433  f0f9							;	====================END LOGIC====================
-    434  f0f9
-    435  f0f9		       4c 20 f0 	      jmp	Main
-    436  f0fc
-    437  f0fc							; here's the actual graphic!
-    438  f0fc				   BigHeadGraphic
-    439  f0fc		       3c		      .byte.b	#%00111100
-    440  f0fd		       7e		      .byte.b	#%01111110
-    441  f0fe		       c1		      .byte.b	#%11000001
-    442  f0ff		       bf		      .byte.b	#%10111111
-    443  f100		       ff		      .byte.b	#%11111111
-    444  f101		       eb		      .byte.b	#%11101011
-    445  f102		       7e		      .byte.b	#%01111110
-    446  f103		       3c		      .byte.b	#%00111100
-    447  f104
-    448  f104							;	playfield data is fliped vertical (upsidedown)
-    449  f104				   PlayfiledPF0
-    450  f104					      REPEAT	PlayfiledSize
-    451  f104		       ff		      .byte.b	#%11111111
-    452  f105					      REPEND
-    453  f105					      REPEAT	[VisableScanLinesCount - 2*PlayfiledSize]
-    454  f105		       10		      .byte.b	#%00010000
-    453  f105					      REPEND
-    454  f106		       10		      .byte.b	#%00010000
-    453  f106					      REPEND
-    454  f107		       10		      .byte.b	#%00010000
-    453  f107					      REPEND
-    454  f108		       10		      .byte.b	#%00010000
-    453  f108					      REPEND
-    454  f109		       10		      .byte.b	#%00010000
-    453  f109					      REPEND
-    454  f10a		       10		      .byte.b	#%00010000
-    453  f10a					      REPEND
-    454  f10b		       10		      .byte.b	#%00010000
-    453  f10b					      REPEND
-    454  f10c		       10		      .byte.b	#%00010000
-    453  f10c					      REPEND
-    454  f10d		       10		      .byte.b	#%00010000
-    453  f10d					      REPEND
-    454  f10e		       10		      .byte.b	#%00010000
-    453  f10e					      REPEND
-    454  f10f		       10		      .byte.b	#%00010000
-    453  f10f					      REPEND
-    454  f110		       10		      .byte.b	#%00010000
-    453  f110					      REPEND
-    454  f111		       10		      .byte.b	#%00010000
-    453  f111					      REPEND
-    454  f112		       10		      .byte.b	#%00010000
-    453  f112					      REPEND
-    454  f113		       10		      .byte.b	#%00010000
-    453  f113					      REPEND
-    454  f114		       10		      .byte.b	#%00010000
-    453  f114					      REPEND
-    454  f115		       10		      .byte.b	#%00010000
-    453  f115					      REPEND
-    454  f116		       10		      .byte.b	#%00010000
-    453  f116					      REPEND
-    454  f117		       10		      .byte.b	#%00010000
-    453  f117					      REPEND
-    454  f118		       10		      .byte.b	#%00010000
-    453  f118					      REPEND
-    454  f119		       10		      .byte.b	#%00010000
-    453  f119					      REPEND
-    454  f11a		       10		      .byte.b	#%00010000
-    453  f11a					      REPEND
-    454  f11b		       10		      .byte.b	#%00010000
-    453  f11b					      REPEND
-    454  f11c		       10		      .byte.b	#%00010000
-    453  f11c					      REPEND
-    454  f11d		       10		      .byte.b	#%00010000
-    453  f11d					      REPEND
-    454  f11e		       10		      .byte.b	#%00010000
-    453  f11e					      REPEND
-    454  f11f		       10		      .byte.b	#%00010000
-    453  f11f					      REPEND
-    454  f120		       10		      .byte.b	#%00010000
-    453  f120					      REPEND
-    454  f121		       10		      .byte.b	#%00010000
-    453  f121					      REPEND
-    454  f122		       10		      .byte.b	#%00010000
-    453  f122					      REPEND
-    454  f123		       10		      .byte.b	#%00010000
-    453  f123					      REPEND
-    454  f124		       10		      .byte.b	#%00010000
-    453  f124					      REPEND
-    454  f125		       10		      .byte.b	#%00010000
-    453  f125					      REPEND
-    454  f126		       10		      .byte.b	#%00010000
-    453  f126					      REPEND
-    454  f127		       10		      .byte.b	#%00010000
-    453  f127					      REPEND
-    454  f128		       10		      .byte.b	#%00010000
-    453  f128					      REPEND
-    454  f129		       10		      .byte.b	#%00010000
-    453  f129					      REPEND
-    454  f12a		       10		      .byte.b	#%00010000
-    453  f12a					      REPEND
-    454  f12b		       10		      .byte.b	#%00010000
-    453  f12b					      REPEND
-    454  f12c		       10		      .byte.b	#%00010000
-    453  f12c					      REPEND
-    454  f12d		       10		      .byte.b	#%00010000
-    453  f12d					      REPEND
-    454  f12e		       10		      .byte.b	#%00010000
-    453  f12e					      REPEND
-    454  f12f		       10		      .byte.b	#%00010000
-    453  f12f					      REPEND
-    454  f130		       10		      .byte.b	#%00010000
-    453  f130					      REPEND
-    454  f131		       10		      .byte.b	#%00010000
-    453  f131					      REPEND
-    454  f132		       10		      .byte.b	#%00010000
-    453  f132					      REPEND
-    454  f133		       10		      .byte.b	#%00010000
-    453  f133					      REPEND
-    454  f134		       10		      .byte.b	#%00010000
-    453  f134					      REPEND
-    454  f135		       10		      .byte.b	#%00010000
-    453  f135					      REPEND
-    454  f136		       10		      .byte.b	#%00010000
-    453  f136					      REPEND
-    454  f137		       10		      .byte.b	#%00010000
-    453  f137					      REPEND
-    454  f138		       10		      .byte.b	#%00010000
-    453  f138					      REPEND
-    454  f139		       10		      .byte.b	#%00010000
-    453  f139					      REPEND
-    454  f13a		       10		      .byte.b	#%00010000
-    453  f13a					      REPEND
-    454  f13b		       10		      .byte.b	#%00010000
-    453  f13b					      REPEND
-    454  f13c		       10		      .byte.b	#%00010000
-    453  f13c					      REPEND
-    454  f13d		       10		      .byte.b	#%00010000
-    453  f13d					      REPEND
-    454  f13e		       10		      .byte.b	#%00010000
-    453  f13e					      REPEND
-    454  f13f		       10		      .byte.b	#%00010000
-    453  f13f					      REPEND
-    454  f140		       10		      .byte.b	#%00010000
-    453  f140					      REPEND
-    454  f141		       10		      .byte.b	#%00010000
-    453  f141					      REPEND
-    454  f142		       10		      .byte.b	#%00010000
-    453  f142					      REPEND
-    454  f143		       10		      .byte.b	#%00010000
-    453  f143					      REPEND
-    454  f144		       10		      .byte.b	#%00010000
-    453  f144					      REPEND
-    454  f145		       10		      .byte.b	#%00010000
-    453  f145					      REPEND
-    454  f146		       10		      .byte.b	#%00010000
-    453  f146					      REPEND
-    454  f147		       10		      .byte.b	#%00010000
-    453  f147					      REPEND
-    454  f148		       10		      .byte.b	#%00010000
-    453  f148					      REPEND
-    454  f149		       10		      .byte.b	#%00010000
-    453  f149					      REPEND
-    454  f14a		       10		      .byte.b	#%00010000
-    453  f14a					      REPEND
-    454  f14b		       10		      .byte.b	#%00010000
-    453  f14b					      REPEND
-    454  f14c		       10		      .byte.b	#%00010000
-    453  f14c					      REPEND
-    454  f14d		       10		      .byte.b	#%00010000
-    453  f14d					      REPEND
-    454  f14e		       10		      .byte.b	#%00010000
-    453  f14e					      REPEND
-    454  f14f		       10		      .byte.b	#%00010000
-    453  f14f					      REPEND
-    454  f150		       10		      .byte.b	#%00010000
-    453  f150					      REPEND
-    454  f151		       10		      .byte.b	#%00010000
-    453  f151					      REPEND
-    454  f152		       10		      .byte.b	#%00010000
-    453  f152					      REPEND
-    454  f153		       10		      .byte.b	#%00010000
-    453  f153					      REPEND
-    454  f154		       10		      .byte.b	#%00010000
-    453  f154					      REPEND
-    454  f155		       10		      .byte.b	#%00010000
-    453  f155					      REPEND
-    454  f156		       10		      .byte.b	#%00010000
-    453  f156					      REPEND
-    454  f157		       10		      .byte.b	#%00010000
-    453  f157					      REPEND
-    454  f158		       10		      .byte.b	#%00010000
-    453  f158					      REPEND
-    454  f159		       10		      .byte.b	#%00010000
-    453  f159					      REPEND
-    454  f15a		       10		      .byte.b	#%00010000
-    453  f15a					      REPEND
-    454  f15b		       10		      .byte.b	#%00010000
-    453  f15b					      REPEND
-    454  f15c		       10		      .byte.b	#%00010000
-    453  f15c					      REPEND
-    454  f15d		       10		      .byte.b	#%00010000
-    453  f15d					      REPEND
-    454  f15e		       10		      .byte.b	#%00010000
-    453  f15e					      REPEND
-    454  f15f		       10		      .byte.b	#%00010000
-    453  f15f					      REPEND
-    454  f160		       10		      .byte.b	#%00010000
-    453  f160					      REPEND
-    454  f161		       10		      .byte.b	#%00010000
-    453  f161					      REPEND
-    454  f162		       10		      .byte.b	#%00010000
-    453  f162					      REPEND
-    454  f163		       10		      .byte.b	#%00010000
-    453  f163					      REPEND
-    454  f164		       10		      .byte.b	#%00010000
-    453  f164					      REPEND
-    454  f165		       10		      .byte.b	#%00010000
-    453  f165					      REPEND
-    454  f166		       10		      .byte.b	#%00010000
-    453  f166					      REPEND
-    454  f167		       10		      .byte.b	#%00010000
-    453  f167					      REPEND
-    454  f168		       10		      .byte.b	#%00010000
-    453  f168					      REPEND
-    454  f169		       10		      .byte.b	#%00010000
-    453  f169					      REPEND
-    454  f16a		       10		      .byte.b	#%00010000
-    453  f16a					      REPEND
-    454  f16b		       10		      .byte.b	#%00010000
-    453  f16b					      REPEND
-    454  f16c		       10		      .byte.b	#%00010000
-    453  f16c					      REPEND
-    454  f16d		       10		      .byte.b	#%00010000
-    453  f16d					      REPEND
-    454  f16e		       10		      .byte.b	#%00010000
-    453  f16e					      REPEND
-    454  f16f		       10		      .byte.b	#%00010000
-    453  f16f					      REPEND
-    454  f170		       10		      .byte.b	#%00010000
-    453  f170					      REPEND
-    454  f171		       10		      .byte.b	#%00010000
-    453  f171					      REPEND
-    454  f172		       10		      .byte.b	#%00010000
-    453  f172					      REPEND
-    454  f173		       10		      .byte.b	#%00010000
-    453  f173					      REPEND
-    454  f174		       10		      .byte.b	#%00010000
-    453  f174					      REPEND
-    454  f175		       10		      .byte.b	#%00010000
-    453  f175					      REPEND
-    454  f176		       10		      .byte.b	#%00010000
-    453  f176					      REPEND
-    454  f177		       10		      .byte.b	#%00010000
-    453  f177					      REPEND
-    454  f178		       10		      .byte.b	#%00010000
-    453  f178					      REPEND
-    454  f179		       10		      .byte.b	#%00010000
-    453  f179					      REPEND
-    454  f17a		       10		      .byte.b	#%00010000
-    453  f17a					      REPEND
-    454  f17b		       10		      .byte.b	#%00010000
-    453  f17b					      REPEND
-    454  f17c		       10		      .byte.b	#%00010000
-    453  f17c					      REPEND
-    454  f17d		       10		      .byte.b	#%00010000
-    453  f17d					      REPEND
-    454  f17e		       10		      .byte.b	#%00010000
-    453  f17e					      REPEND
-    454  f17f		       10		      .byte.b	#%00010000
-    453  f17f					      REPEND
-    454  f180		       10		      .byte.b	#%00010000
-    453  f180					      REPEND
-    454  f181		       10		      .byte.b	#%00010000
-    453  f181					      REPEND
-    454  f182		       10		      .byte.b	#%00010000
-    453  f182					      REPEND
-    454  f183		       10		      .byte.b	#%00010000
-    453  f183					      REPEND
-    454  f184		       10		      .byte.b	#%00010000
-    453  f184					      REPEND
-    454  f185		       10		      .byte.b	#%00010000
-    453  f185					      REPEND
-    454  f186		       10		      .byte.b	#%00010000
-    453  f186					      REPEND
-    454  f187		       10		      .byte.b	#%00010000
-    453  f187					      REPEND
-    454  f188		       10		      .byte.b	#%00010000
-    453  f188					      REPEND
-    454  f189		       10		      .byte.b	#%00010000
-    453  f189					      REPEND
-    454  f18a		       10		      .byte.b	#%00010000
-    453  f18a					      REPEND
-    454  f18b		       10		      .byte.b	#%00010000
-    453  f18b					      REPEND
-    454  f18c		       10		      .byte.b	#%00010000
-    453  f18c					      REPEND
-    454  f18d		       10		      .byte.b	#%00010000
-    453  f18d					      REPEND
-    454  f18e		       10		      .byte.b	#%00010000
-    453  f18e					      REPEND
-    454  f18f		       10		      .byte.b	#%00010000
-    453  f18f					      REPEND
-    454  f190		       10		      .byte.b	#%00010000
-    453  f190					      REPEND
-    454  f191		       10		      .byte.b	#%00010000
-    453  f191					      REPEND
-    454  f192		       10		      .byte.b	#%00010000
-    453  f192					      REPEND
-    454  f193		       10		      .byte.b	#%00010000
-    453  f193					      REPEND
-    454  f194		       10		      .byte.b	#%00010000
-    453  f194					      REPEND
-    454  f195		       10		      .byte.b	#%00010000
-    453  f195					      REPEND
-    454  f196		       10		      .byte.b	#%00010000
-    453  f196					      REPEND
-    454  f197		       10		      .byte.b	#%00010000
-    453  f197					      REPEND
-    454  f198		       10		      .byte.b	#%00010000
-    453  f198					      REPEND
-    454  f199		       10		      .byte.b	#%00010000
-    453  f199					      REPEND
-    454  f19a		       10		      .byte.b	#%00010000
-    453  f19a					      REPEND
-    454  f19b		       10		      .byte.b	#%00010000
-    453  f19b					      REPEND
-    454  f19c		       10		      .byte.b	#%00010000
-    453  f19c					      REPEND
-    454  f19d		       10		      .byte.b	#%00010000
-    453  f19d					      REPEND
-    454  f19e		       10		      .byte.b	#%00010000
-    453  f19e					      REPEND
-    454  f19f		       10		      .byte.b	#%00010000
-    453  f19f					      REPEND
-    454  f1a0		       10		      .byte.b	#%00010000
-    453  f1a0					      REPEND
-    454  f1a1		       10		      .byte.b	#%00010000
-    453  f1a1					      REPEND
-    454  f1a2		       10		      .byte.b	#%00010000
-    453  f1a2					      REPEND
-    454  f1a3		       10		      .byte.b	#%00010000
-    453  f1a3					      REPEND
-    454  f1a4		       10		      .byte.b	#%00010000
-    453  f1a4					      REPEND
-    454  f1a5		       10		      .byte.b	#%00010000
-    453  f1a5					      REPEND
-    454  f1a6		       10		      .byte.b	#%00010000
-    453  f1a6					      REPEND
-    454  f1a7		       10		      .byte.b	#%00010000
-    453  f1a7					      REPEND
-    454  f1a8		       10		      .byte.b	#%00010000
-    453  f1a8					      REPEND
-    454  f1a9		       10		      .byte.b	#%00010000
-    453  f1a9					      REPEND
+    257  f07c
+    258  f07c							;	fill playfild buffers and set TIA playfild registers
+    259  f07c		       a0 bf		      ldy	#LastScanlineIndex	; load to Y reg index 0 of scanline to draw
+    260  f07e
+    261  f07e		       a9 00		      lda	#0
+    262  f080
+    263  f080							;	fill player0 buffer and set TIA player0 register
+    264  f080							;	check is player0 on first scanline index
+    265  f080		       c4 81		      cpy	Player0YStartPopsition	; compare y reg with Player0YStartPopsition
+    266  f082		       d0 08		      bne	FirstScanlineSkipDrawPlayer0
+    267  f084
+    268  f084							;	if on first scanline set player0 scanline number counter
+    269  f084		       a2 09		      ldx	#[Player0Height - 1]	; (x height couter for player0) set index x register to height couter for player0
+    270  f086
+    271  f086		       bd e4 f0 	      lda	BigHeadGraphic,x	; (x height couter for player0) load first data row for player0
+    272  f089
+    273  f089		       4c 8e f0 	      jmp	FirstScanlineFillPlayer0Buffer
+    274  f08c
+    275  f08c				   FirstScanlineSkipDrawPlayer0
+    276  f08c		       a2 01		      ldx	#1	; (x height couter for player0) reset height couter for player0 to 1
+    277  f08e							; in every step it is decrement and check is Carry Flag (P.C) not set
+    278  f08e
+    279  f08e				   FirstScanlineFillPlayer0Buffer
+    280  f08e		       85 82		      sta	Player0Buffer
+    281  f090
+    282  f090							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    283  f090
+    284  f090							;	====================END LOGIC====================
+    285  f090							;	wait for Vblank end if we have spere cycles
+    286  f090
+    287  f090				   WaitForVblank
+    288  f090		       ad 84 02 	      lda	INTIM	; load TIM64T counter
+    289  f093		       d0 fb		      bne	WaitForVblank	; if TIM64T == 0 couter
+    290  f095							; branch to WaitForVblank
+    291  f095
+    292  f095		       85 02		      sta	WSYNC	; atari have somethig like 44 cycles to
+    293  f097							; end scanline so we wait for finish
+    294  f097
+    295  f097		       85 01		      sta	VBLANK	; set end of vblank
+    296  f099							; sta_zp 3 = 3
+    297  f099		       ea		      nop		; nop 2    = 5
+    298  f09a
+    299  f09a							;	scanlines loop
+    300  f09a				   FillBuffersForNextScanline
+    301  f09a
+    302  f09a							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    303  f09a							;	!!!!!!!!!!!!!!!BEGIN OF SCANLINE!!!!!!!!!!!!!!!
+    304  f09a							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    305  f09a
+    306  f09a							;	!!!!!!!!!!!!!!HORIZONTAL BLANK!!!!!!!!!!!!!!!!!
+    307  f09a							;	!!!horizonatl blank have 22 cycles in which!!!!
+    308  f09a							;	!!we have to set all necessary TIA registers!!!
+    309  f09a							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    310  f09a
+    311  f09a							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    312  f09a							;	!!!!SET TIA REGISTERS FOR CURRENT SCANLINE!!!!!
+    313  f09a							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    314  f09a
+    315  f09a		       a5 82		      lda	Player0Buffer	; lda_zp 3 = 9
+    316  f09c		       85 1b		      sta	GRP0	; sta_zp 3 = 12
+    317  f09e
+    318  f09e		       b9 ee f0 	      lda	LeftPlayfiledPF0,y	; lda_abs 4-5 = 17
+    319  f0a1		       85 0d		      sta	PF0	; sta_zp 3	  = 20
+    320  f0a3
+    321  f0a3							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    322  f0a3							;	!!!!!!!!!!!!!!!!!END OF VBLANK!!!!!!!!!!!!!!!!!
+    323  f0a3							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    324  f0a3
+    325  f0a3							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    326  f0a3							;	!!!BEGIN OF SCANLINE AFTER SET TIA REGISTER!!!!
+    327  f0a3							;	!!!!!!!!53 cycle for scanline logic!!!!!!!!!!!!
+    328  f0a3							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    329  f0a3
+    330  f0a3		       b9 ae f1 	      lda	LeftPlayfiledPF1,y	; lda_abs 4-5 = 25	| 3
+    331  f0a6		       85 0e		      sta	PF1	; sta_zp 3	  = 28 	| 6
+    332  f0a8
+    333  f0a8		       b9 6e f2 	      lda	LeftPlayfiledPF2,y	; lda_abs 4-5 = 33	| 11
+    334  f0ab		       85 0f		      sta	PF2	; sta_zp 3	  = 36 	| 14
+    335  f0ad
+    336  f0ad							;	after (4 [PF blocks] * 4 [pxels]) / 3 [cycles per pixel] = 6 visable scanline cycles we can set again PF0
+    337  f0ad		       b9 2e f3 	      lda	RightPlayfiledPF0,y	; lda_abs 4-5 = 41  | 19
+    338  f0b0		       85 0d		      sta	PF0	; sta_zp 3	  = 44  | 22
+    339  f0b2
+    340  f0b2							;	after (12 [PF blocks] * 4 [pxels]) / 3 [cycles per pixel] = 17 visable scanline cycles we can set again PF1
+    341  f0b2		       b9 ee f3 	      lda	RightPlayfiledPF1,y	; lda_abs 4-5 = 49	| 27
+    342  f0b5		       85 0e		      sta	PF1	; sta_zp 3	  = 51  | 30
+    343  f0b7
+    344  f0b7							;	after (20 [PF blocks] * 4 [pxels]) / 3 [cycles per pixel] = 27 visable scanline cycles we can set again PF2
+    345  f0b7		       b9 ae f4 	      lda	RightPlayfiledPF2,y	; lda_abs 4-5 = 56	| 35
+    346  f0ba		       85 0f		      sta	PF2	; sta_zp 3	  = 59  | 38
+    347  f0bc
+    348  f0bc							;	player 0 draw buffer setup
+    349  f0bc		       ca		      dex		; dex 2	  = 61
+    350  f0bd							;	(x height couter for player0) if height couter for player0 == 1
+    351  f0bd							;	not set player0 draw for this scanline
+    352  f0bd		       f0 08		      beq	SkipDrawPlayer0
+    353  f0bf							; beq 2	  = 63
+    354  f0bf							;	(x height couter for player0) decrement height couter for player0
+    355  f0bf		       bd e4 f0 	      lda	BigHeadGraphic,x	; lda_abs 4-5 = 68
+    356  f0c2							;	turn off visible for player 0 for index x == 1
+    357  f0c2
+    358  f0c2							;	to turn on visible for player 0 in this
+    359  f0c2							;	scanline we must set byte of data which handle pixel info for this line
+    360  f0c2		       85 82		      sta	Player0Buffer	; sta_zp 3	  = 71
+    361  f0c4
+    362  f0c4		       4c cf f0 	      jmp	EndOfScanline	; jmp 3	  = 74
+    363  f0c7
+    364  f0c7							; sta_zp 3	  = 77 !!!!
+    365  f0c7							;---------------->HORIZONTAL BLANK
+    366  f0c7				   SkipDrawPlayer0
+    367  f0c7							; beq 3-4	  = 65
+    368  f0c7		       a2 01		      ldx	#1	; lda_im 2	  = 67
+    369  f0c9							; (x height couter for player0) reset height couter for player0 to 1
+    370  f0c9							; in every step it is decrement and check is Carry Flag (P.C) not set
+    371  f0c9
+    372  f0c9		       c4 81		      cpy	Player0YStartPopsition	; cpy_zp 3	  = 70
+    373  f0cb							;	compare y reg with Player0YStartPopsition
+    374  f0cb							;	value
+    375  f0cb							; bne 3-4	  = 74
+    376  f0cb
+    377  f0cb							; sta_zp 3	  = 77 !!!
+    378  f0cb							;---------------->HORIZONTAL BLANK
+    379  f0cb		       d0 02		      bne	EndOfScanline
+    380  f0cd							;	if not equal, not set player0 draw counter
+    381  f0cd							; bne 2		= 72
+    382  f0cd							;	(x height couter for player0) set height couter for player0 to Player0Height lines
+    383  f0cd		       a2 0a		      ldx	#Player0Height	; ldx_im 2		= 74
+    384  f0cf
+    385  f0cf							; sta_zp 3		= 77 !!!
+    386  f0cf							;---------------->HORIZONTAL BLANK
+    387  f0cf
+    388  f0cf				   EndOfScanline
+    389  f0cf
+    390  f0cf							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    391  f0cf							;	!!!!!!!!!!!!!!!END OF SCANLINE!!!!!!!!!!!!!!!!!
+    392  f0cf							;	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    393  f0cf
+    394  f0cf		       85 02		      sta	WSYNC
+    395  f0d1
+    396  f0d1							;	next scanline index to draw
+    397  f0d1		       88		      dey		; dey 2	  = 2
+    398  f0d2		       d0 c6		      bne	FillBuffersForNextScanline	; bne 3-4	  = 6
+    399  f0d4							;	if couter not 1 repeat
+    400  f0d4
+    401  f0d4							;	now finish last scan line with sta WSYNC and turn on
+    402  f0d4							;	VBLANK
+    403  f0d4
+    404  f0d4		       a9 02		      lda	#2
+    405  f0d6		       85 02		      sta	WSYNC
+    406  f0d8		       85 01		      sta	VBLANK
+    407  f0da
+    408  f0da							;	count down 30 scanlines of overscan we can put
+    409  f0da							;	here logic code
+    410  f0da
+    411  f0da							;	beter then emply loop put here some code
+    412  f0da							;	2280 - 3(jmp instruction) cycles
+    413  f0da							;	===================BEGIN LOGIC===================
+    414  f0da
+    415  f0da		       a2 1e		      ldx	#30
+    416  f0dc				   OverScanWait
+    417  f0dc		       85 02		      sta	WSYNC
+    418  f0de		       ca		      dex
+    419  f0df		       d0 fb		      bne	OverScanWait
+    420  f0e1
+    421  f0e1							;	====================END LOGIC====================
+    422  f0e1
+    423  f0e1		       4c 20 f0 	      jmp	Main
+    424  f0e4
+    425  f0e4							; here's the actual graphic!
+    426  f0e4				   BigHeadGraphic
+    427  f0e4		       00		      .byte.b	#%00000000
+    428  f0e5		       00		      .byte.b	#%00000000
+    429  f0e6		       3c		      .byte.b	#%00111100
+    430  f0e7		       7e		      .byte.b	#%01111110
+    431  f0e8		       c1		      .byte.b	#%11000001
+    432  f0e9		       bf		      .byte.b	#%10111111
+    433  f0ea		       ff		      .byte.b	#%11111111
+    434  f0eb		       eb		      .byte.b	#%11101011
+    435  f0ec		       7e		      .byte.b	#%01111110
+    436  f0ed		       3c		      .byte.b	#%00111100
+    437  f0ee
+    438  f0ee		       00 64	   LeftPlatformPosition =	100
+    439  f0ee
+    440  f0ee				   LeftPlayfiledPF0
+    441  f0ee					      REPEAT	PlayfiledSize
+    442  f0ee		       ff		      .byte.b	#%11111111
+    441  f0ee					      REPEND
+    442  f0ef		       ff		      .byte.b	#%11111111
+    441  f0ef					      REPEND
+    442  f0f0		       ff		      .byte.b	#%11111111
+    441  f0f0					      REPEND
+    442  f0f1		       ff		      .byte.b	#%11111111
+    443  f0f2					      REPEND
+    444  f0f2					      REPEAT	[LeftPlatformPosition]
+    445  f0f2		       10		      .byte.b	#%00010000
+    444  f0f2					      REPEND
+    445  f0f3		       10		      .byte.b	#%00010000
+    444  f0f3					      REPEND
+    445  f0f4		       10		      .byte.b	#%00010000
+    444  f0f4					      REPEND
+    445  f0f5		       10		      .byte.b	#%00010000
+    444  f0f5					      REPEND
+    445  f0f6		       10		      .byte.b	#%00010000
+    444  f0f6					      REPEND
+    445  f0f7		       10		      .byte.b	#%00010000
+    444  f0f7					      REPEND
+    445  f0f8		       10		      .byte.b	#%00010000
+    444  f0f8					      REPEND
+    445  f0f9		       10		      .byte.b	#%00010000
+    444  f0f9					      REPEND
+    445  f0fa		       10		      .byte.b	#%00010000
+    444  f0fa					      REPEND
+    445  f0fb		       10		      .byte.b	#%00010000
+    444  f0fb					      REPEND
+    445  f0fc		       10		      .byte.b	#%00010000
+    444  f0fc					      REPEND
+    445  f0fd		       10		      .byte.b	#%00010000
+    444  f0fd					      REPEND
+    445  f0fe		       10		      .byte.b	#%00010000
+    444  f0fe					      REPEND
+    445  f0ff		       10		      .byte.b	#%00010000
+    444  f0ff					      REPEND
+    445  f100		       10		      .byte.b	#%00010000
+    444  f100					      REPEND
+    445  f101		       10		      .byte.b	#%00010000
+    444  f101					      REPEND
+    445  f102		       10		      .byte.b	#%00010000
+    444  f102					      REPEND
+    445  f103		       10		      .byte.b	#%00010000
+    444  f103					      REPEND
+    445  f104		       10		      .byte.b	#%00010000
+    444  f104					      REPEND
+    445  f105		       10		      .byte.b	#%00010000
+    444  f105					      REPEND
+    445  f106		       10		      .byte.b	#%00010000
+    444  f106					      REPEND
+    445  f107		       10		      .byte.b	#%00010000
+    444  f107					      REPEND
+    445  f108		       10		      .byte.b	#%00010000
+    444  f108					      REPEND
+    445  f109		       10		      .byte.b	#%00010000
+    444  f109					      REPEND
+    445  f10a		       10		      .byte.b	#%00010000
+    444  f10a					      REPEND
+    445  f10b		       10		      .byte.b	#%00010000
+    444  f10b					      REPEND
+    445  f10c		       10		      .byte.b	#%00010000
+    444  f10c					      REPEND
+    445  f10d		       10		      .byte.b	#%00010000
+    444  f10d					      REPEND
+    445  f10e		       10		      .byte.b	#%00010000
+    444  f10e					      REPEND
+    445  f10f		       10		      .byte.b	#%00010000
+    444  f10f					      REPEND
+    445  f110		       10		      .byte.b	#%00010000
+    444  f110					      REPEND
+    445  f111		       10		      .byte.b	#%00010000
+    444  f111					      REPEND
+    445  f112		       10		      .byte.b	#%00010000
+    444  f112					      REPEND
+    445  f113		       10		      .byte.b	#%00010000
+    444  f113					      REPEND
+    445  f114		       10		      .byte.b	#%00010000
+    444  f114					      REPEND
+    445  f115		       10		      .byte.b	#%00010000
+    444  f115					      REPEND
+    445  f116		       10		      .byte.b	#%00010000
+    444  f116					      REPEND
+    445  f117		       10		      .byte.b	#%00010000
+    444  f117					      REPEND
+    445  f118		       10		      .byte.b	#%00010000
+    444  f118					      REPEND
+    445  f119		       10		      .byte.b	#%00010000
+    444  f119					      REPEND
+    445  f11a		       10		      .byte.b	#%00010000
+    444  f11a					      REPEND
+    445  f11b		       10		      .byte.b	#%00010000
+    444  f11b					      REPEND
+    445  f11c		       10		      .byte.b	#%00010000
+    444  f11c					      REPEND
+    445  f11d		       10		      .byte.b	#%00010000
+    444  f11d					      REPEND
+    445  f11e		       10		      .byte.b	#%00010000
+    444  f11e					      REPEND
+    445  f11f		       10		      .byte.b	#%00010000
+    444  f11f					      REPEND
+    445  f120		       10		      .byte.b	#%00010000
+    444  f120					      REPEND
+    445  f121		       10		      .byte.b	#%00010000
+    444  f121					      REPEND
+    445  f122		       10		      .byte.b	#%00010000
+    444  f122					      REPEND
+    445  f123		       10		      .byte.b	#%00010000
+    444  f123					      REPEND
+    445  f124		       10		      .byte.b	#%00010000
+    444  f124					      REPEND
+    445  f125		       10		      .byte.b	#%00010000
+    444  f125					      REPEND
+    445  f126		       10		      .byte.b	#%00010000
+    444  f126					      REPEND
+    445  f127		       10		      .byte.b	#%00010000
+    444  f127					      REPEND
+    445  f128		       10		      .byte.b	#%00010000
+    444  f128					      REPEND
+    445  f129		       10		      .byte.b	#%00010000
+    444  f129					      REPEND
+    445  f12a		       10		      .byte.b	#%00010000
+    444  f12a					      REPEND
+    445  f12b		       10		      .byte.b	#%00010000
+    444  f12b					      REPEND
+    445  f12c		       10		      .byte.b	#%00010000
+    444  f12c					      REPEND
+    445  f12d		       10		      .byte.b	#%00010000
+    444  f12d					      REPEND
+    445  f12e		       10		      .byte.b	#%00010000
+    444  f12e					      REPEND
+    445  f12f		       10		      .byte.b	#%00010000
+    444  f12f					      REPEND
+    445  f130		       10		      .byte.b	#%00010000
+    444  f130					      REPEND
+    445  f131		       10		      .byte.b	#%00010000
+    444  f131					      REPEND
+    445  f132		       10		      .byte.b	#%00010000
+    444  f132					      REPEND
+    445  f133		       10		      .byte.b	#%00010000
+    444  f133					      REPEND
+    445  f134		       10		      .byte.b	#%00010000
+    444  f134					      REPEND
+    445  f135		       10		      .byte.b	#%00010000
+    444  f135					      REPEND
+    445  f136		       10		      .byte.b	#%00010000
+    444  f136					      REPEND
+    445  f137		       10		      .byte.b	#%00010000
+    444  f137					      REPEND
+    445  f138		       10		      .byte.b	#%00010000
+    444  f138					      REPEND
+    445  f139		       10		      .byte.b	#%00010000
+    444  f139					      REPEND
+    445  f13a		       10		      .byte.b	#%00010000
+    444  f13a					      REPEND
+    445  f13b		       10		      .byte.b	#%00010000
+    444  f13b					      REPEND
+    445  f13c		       10		      .byte.b	#%00010000
+    444  f13c					      REPEND
+    445  f13d		       10		      .byte.b	#%00010000
+    444  f13d					      REPEND
+    445  f13e		       10		      .byte.b	#%00010000
+    444  f13e					      REPEND
+    445  f13f		       10		      .byte.b	#%00010000
+    444  f13f					      REPEND
+    445  f140		       10		      .byte.b	#%00010000
+    444  f140					      REPEND
+    445  f141		       10		      .byte.b	#%00010000
+    444  f141					      REPEND
+    445  f142		       10		      .byte.b	#%00010000
+    444  f142					      REPEND
+    445  f143		       10		      .byte.b	#%00010000
+    444  f143					      REPEND
+    445  f144		       10		      .byte.b	#%00010000
+    444  f144					      REPEND
+    445  f145		       10		      .byte.b	#%00010000
+    444  f145					      REPEND
+    445  f146		       10		      .byte.b	#%00010000
+    444  f146					      REPEND
+    445  f147		       10		      .byte.b	#%00010000
+    444  f147					      REPEND
+    445  f148		       10		      .byte.b	#%00010000
+    444  f148					      REPEND
+    445  f149		       10		      .byte.b	#%00010000
+    444  f149					      REPEND
+    445  f14a		       10		      .byte.b	#%00010000
+    444  f14a					      REPEND
+    445  f14b		       10		      .byte.b	#%00010000
+    444  f14b					      REPEND
+    445  f14c		       10		      .byte.b	#%00010000
+    444  f14c					      REPEND
+    445  f14d		       10		      .byte.b	#%00010000
+    444  f14d					      REPEND
+    445  f14e		       10		      .byte.b	#%00010000
+    444  f14e					      REPEND
+    445  f14f		       10		      .byte.b	#%00010000
+    444  f14f					      REPEND
+    445  f150		       10		      .byte.b	#%00010000
+    444  f150					      REPEND
+    445  f151		       10		      .byte.b	#%00010000
+    444  f151					      REPEND
+    445  f152		       10		      .byte.b	#%00010000
+    444  f152					      REPEND
+    445  f153		       10		      .byte.b	#%00010000
+    444  f153					      REPEND
+    445  f154		       10		      .byte.b	#%00010000
+    444  f154					      REPEND
+    445  f155		       10		      .byte.b	#%00010000
+    446  f156					      REPEND
+    447  f156					      REPEAT	[PlayfiledSize]
+    448  f156		       ff		      .byte.b	#%11111111
+    447  f156					      REPEND
+    448  f157		       ff		      .byte.b	#%11111111
+    447  f157					      REPEND
+    448  f158		       ff		      .byte.b	#%11111111
+    447  f158					      REPEND
+    448  f159		       ff		      .byte.b	#%11111111
+    449  f15a					      REPEND
+    450  f15a					      REPEAT	[VisableScanLinesCount - LeftPlatformPosition - 3*PlayfiledSize]
+    451  f15a		       10		      .byte.b	#%00010000
+    450  f15a					      REPEND
+    451  f15b		       10		      .byte.b	#%00010000
+    450  f15b					      REPEND
+    451  f15c		       10		      .byte.b	#%00010000
+    450  f15c					      REPEND
+    451  f15d		       10		      .byte.b	#%00010000
+    450  f15d					      REPEND
+    451  f15e		       10		      .byte.b	#%00010000
+    450  f15e					      REPEND
+    451  f15f		       10		      .byte.b	#%00010000
+    450  f15f					      REPEND
+    451  f160		       10		      .byte.b	#%00010000
+    450  f160					      REPEND
+    451  f161		       10		      .byte.b	#%00010000
+    450  f161					      REPEND
+    451  f162		       10		      .byte.b	#%00010000
+    450  f162					      REPEND
+    451  f163		       10		      .byte.b	#%00010000
+    450  f163					      REPEND
+    451  f164		       10		      .byte.b	#%00010000
+    450  f164					      REPEND
+    451  f165		       10		      .byte.b	#%00010000
+    450  f165					      REPEND
+    451  f166		       10		      .byte.b	#%00010000
+    450  f166					      REPEND
+    451  f167		       10		      .byte.b	#%00010000
+    450  f167					      REPEND
+    451  f168		       10		      .byte.b	#%00010000
+    450  f168					      REPEND
+    451  f169		       10		      .byte.b	#%00010000
+    450  f169					      REPEND
+    451  f16a		       10		      .byte.b	#%00010000
+    450  f16a					      REPEND
+    451  f16b		       10		      .byte.b	#%00010000
+    450  f16b					      REPEND
+    451  f16c		       10		      .byte.b	#%00010000
+    450  f16c					      REPEND
+    451  f16d		       10		      .byte.b	#%00010000
+    450  f16d					      REPEND
+    451  f16e		       10		      .byte.b	#%00010000
+    450  f16e					      REPEND
+    451  f16f		       10		      .byte.b	#%00010000
+    450  f16f					      REPEND
+    451  f170		       10		      .byte.b	#%00010000
+    450  f170					      REPEND
+    451  f171		       10		      .byte.b	#%00010000
+    450  f171					      REPEND
+    451  f172		       10		      .byte.b	#%00010000
+    450  f172					      REPEND
+    451  f173		       10		      .byte.b	#%00010000
+    450  f173					      REPEND
+    451  f174		       10		      .byte.b	#%00010000
+    450  f174					      REPEND
+    451  f175		       10		      .byte.b	#%00010000
+    450  f175					      REPEND
+    451  f176		       10		      .byte.b	#%00010000
+    450  f176					      REPEND
+    451  f177		       10		      .byte.b	#%00010000
+    450  f177					      REPEND
+    451  f178		       10		      .byte.b	#%00010000
+    450  f178					      REPEND
+    451  f179		       10		      .byte.b	#%00010000
+    450  f179					      REPEND
+    451  f17a		       10		      .byte.b	#%00010000
+    450  f17a					      REPEND
+    451  f17b		       10		      .byte.b	#%00010000
+    450  f17b					      REPEND
+    451  f17c		       10		      .byte.b	#%00010000
+    450  f17c					      REPEND
+    451  f17d		       10		      .byte.b	#%00010000
+    450  f17d					      REPEND
+    451  f17e		       10		      .byte.b	#%00010000
+    450  f17e					      REPEND
+    451  f17f		       10		      .byte.b	#%00010000
+    450  f17f					      REPEND
+    451  f180		       10		      .byte.b	#%00010000
+    450  f180					      REPEND
+    451  f181		       10		      .byte.b	#%00010000
+    450  f181					      REPEND
+    451  f182		       10		      .byte.b	#%00010000
+    450  f182					      REPEND
+    451  f183		       10		      .byte.b	#%00010000
+    450  f183					      REPEND
+    451  f184		       10		      .byte.b	#%00010000
+    450  f184					      REPEND
+    451  f185		       10		      .byte.b	#%00010000
+    450  f185					      REPEND
+    451  f186		       10		      .byte.b	#%00010000
+    450  f186					      REPEND
+    451  f187		       10		      .byte.b	#%00010000
+    450  f187					      REPEND
+    451  f188		       10		      .byte.b	#%00010000
+    450  f188					      REPEND
+    451  f189		       10		      .byte.b	#%00010000
+    450  f189					      REPEND
+    451  f18a		       10		      .byte.b	#%00010000
+    450  f18a					      REPEND
+    451  f18b		       10		      .byte.b	#%00010000
+    450  f18b					      REPEND
+    451  f18c		       10		      .byte.b	#%00010000
+    450  f18c					      REPEND
+    451  f18d		       10		      .byte.b	#%00010000
+    450  f18d					      REPEND
+    451  f18e		       10		      .byte.b	#%00010000
+    450  f18e					      REPEND
+    451  f18f		       10		      .byte.b	#%00010000
+    450  f18f					      REPEND
+    451  f190		       10		      .byte.b	#%00010000
+    450  f190					      REPEND
+    451  f191		       10		      .byte.b	#%00010000
+    450  f191					      REPEND
+    451  f192		       10		      .byte.b	#%00010000
+    450  f192					      REPEND
+    451  f193		       10		      .byte.b	#%00010000
+    450  f193					      REPEND
+    451  f194		       10		      .byte.b	#%00010000
+    450  f194					      REPEND
+    451  f195		       10		      .byte.b	#%00010000
+    450  f195					      REPEND
+    451  f196		       10		      .byte.b	#%00010000
+    450  f196					      REPEND
+    451  f197		       10		      .byte.b	#%00010000
+    450  f197					      REPEND
+    451  f198		       10		      .byte.b	#%00010000
+    450  f198					      REPEND
+    451  f199		       10		      .byte.b	#%00010000
+    450  f199					      REPEND
+    451  f19a		       10		      .byte.b	#%00010000
+    450  f19a					      REPEND
+    451  f19b		       10		      .byte.b	#%00010000
+    450  f19b					      REPEND
+    451  f19c		       10		      .byte.b	#%00010000
+    450  f19c					      REPEND
+    451  f19d		       10		      .byte.b	#%00010000
+    450  f19d					      REPEND
+    451  f19e		       10		      .byte.b	#%00010000
+    450  f19e					      REPEND
+    451  f19f		       10		      .byte.b	#%00010000
+    450  f19f					      REPEND
+    451  f1a0		       10		      .byte.b	#%00010000
+    450  f1a0					      REPEND
+    451  f1a1		       10		      .byte.b	#%00010000
+    450  f1a1					      REPEND
+    451  f1a2		       10		      .byte.b	#%00010000
+    450  f1a2					      REPEND
+    451  f1a3		       10		      .byte.b	#%00010000
+    450  f1a3					      REPEND
+    451  f1a4		       10		      .byte.b	#%00010000
+    450  f1a4					      REPEND
+    451  f1a5		       10		      .byte.b	#%00010000
+    450  f1a5					      REPEND
+    451  f1a6		       10		      .byte.b	#%00010000
+    450  f1a6					      REPEND
+    451  f1a7		       10		      .byte.b	#%00010000
+    450  f1a7					      REPEND
+    451  f1a8		       10		      .byte.b	#%00010000
+    450  f1a8					      REPEND
+    451  f1a9		       10		      .byte.b	#%00010000
+    452  f1aa					      REPEND
+    453  f1aa					      REPEAT	PlayfiledSize
     454  f1aa		       10		      .byte.b	#%00010000
     453  f1aa					      REPEND
     454  f1ab		       10		      .byte.b	#%00010000
@@ -871,841 +909,1977 @@
     454  f1ac		       10		      .byte.b	#%00010000
     453  f1ac					      REPEND
     454  f1ad		       10		      .byte.b	#%00010000
-    453  f1ad					      REPEND
-    454  f1ae		       10		      .byte.b	#%00010000
-    453  f1ae					      REPEND
-    454  f1af		       10		      .byte.b	#%00010000
-    453  f1af					      REPEND
-    454  f1b0		       10		      .byte.b	#%00010000
-    453  f1b0					      REPEND
-    454  f1b1		       10		      .byte.b	#%00010000
-    453  f1b1					      REPEND
-    454  f1b2		       10		      .byte.b	#%00010000
-    453  f1b2					      REPEND
-    454  f1b3		       10		      .byte.b	#%00010000
-    453  f1b3					      REPEND
-    454  f1b4		       10		      .byte.b	#%00010000
-    453  f1b4					      REPEND
-    454  f1b5		       10		      .byte.b	#%00010000
-    453  f1b5					      REPEND
-    454  f1b6		       10		      .byte.b	#%00010000
-    453  f1b6					      REPEND
-    454  f1b7		       10		      .byte.b	#%00010000
-    453  f1b7					      REPEND
-    454  f1b8		       10		      .byte.b	#%00010000
-    453  f1b8					      REPEND
-    454  f1b9		       10		      .byte.b	#%00010000
-    453  f1b9					      REPEND
-    454  f1ba		       10		      .byte.b	#%00010000
-    453  f1ba					      REPEND
-    454  f1bb		       10		      .byte.b	#%00010000
-    453  f1bb					      REPEND
-    454  f1bc		       10		      .byte.b	#%00010000
-    453  f1bc					      REPEND
-    454  f1bd		       10		      .byte.b	#%00010000
-    453  f1bd					      REPEND
-    454  f1be		       10		      .byte.b	#%00010000
-    453  f1be					      REPEND
-    454  f1bf		       10		      .byte.b	#%00010000
-    453  f1bf					      REPEND
-    454  f1c0		       10		      .byte.b	#%00010000
-    453  f1c0					      REPEND
-    454  f1c1		       10		      .byte.b	#%00010000
-    453  f1c1					      REPEND
-    454  f1c2		       10		      .byte.b	#%00010000
-    455  f1c3					      REPEND
-    456  f1c3					      REPEAT	PlayfiledSize
-    457  f1c3		       ff		      .byte.b	#%11111111
-    458  f1c4					      REPEND
-    459  f1c4
-    460  f1c4				   PlayfiledPF1
-    461  f1c4					      REPEAT	PlayfiledSize
-    462  f1c4		       ff		      .byte.b	#%11111111
-    463  f1c5					      REPEND
-    464  f1c5					      REPEAT	[VisableScanLinesCount - 2*PlayfiledSize]
-    465  f1c5		       00		      .byte.b	#%00000000
-    464  f1c5					      REPEND
-    465  f1c6		       00		      .byte.b	#%00000000
-    464  f1c6					      REPEND
-    465  f1c7		       00		      .byte.b	#%00000000
-    464  f1c7					      REPEND
-    465  f1c8		       00		      .byte.b	#%00000000
-    464  f1c8					      REPEND
-    465  f1c9		       00		      .byte.b	#%00000000
-    464  f1c9					      REPEND
-    465  f1ca		       00		      .byte.b	#%00000000
-    464  f1ca					      REPEND
-    465  f1cb		       00		      .byte.b	#%00000000
-    464  f1cb					      REPEND
-    465  f1cc		       00		      .byte.b	#%00000000
-    464  f1cc					      REPEND
-    465  f1cd		       00		      .byte.b	#%00000000
-    464  f1cd					      REPEND
-    465  f1ce		       00		      .byte.b	#%00000000
-    464  f1ce					      REPEND
-    465  f1cf		       00		      .byte.b	#%00000000
-    464  f1cf					      REPEND
-    465  f1d0		       00		      .byte.b	#%00000000
-    464  f1d0					      REPEND
-    465  f1d1		       00		      .byte.b	#%00000000
-    464  f1d1					      REPEND
-    465  f1d2		       00		      .byte.b	#%00000000
-    464  f1d2					      REPEND
-    465  f1d3		       00		      .byte.b	#%00000000
-    464  f1d3					      REPEND
-    465  f1d4		       00		      .byte.b	#%00000000
-    464  f1d4					      REPEND
-    465  f1d5		       00		      .byte.b	#%00000000
-    464  f1d5					      REPEND
-    465  f1d6		       00		      .byte.b	#%00000000
-    464  f1d6					      REPEND
-    465  f1d7		       00		      .byte.b	#%00000000
-    464  f1d7					      REPEND
-    465  f1d8		       00		      .byte.b	#%00000000
-    464  f1d8					      REPEND
-    465  f1d9		       00		      .byte.b	#%00000000
-    464  f1d9					      REPEND
-    465  f1da		       00		      .byte.b	#%00000000
-    464  f1da					      REPEND
-    465  f1db		       00		      .byte.b	#%00000000
-    464  f1db					      REPEND
-    465  f1dc		       00		      .byte.b	#%00000000
-    464  f1dc					      REPEND
-    465  f1dd		       00		      .byte.b	#%00000000
-    464  f1dd					      REPEND
-    465  f1de		       00		      .byte.b	#%00000000
-    464  f1de					      REPEND
-    465  f1df		       00		      .byte.b	#%00000000
-    464  f1df					      REPEND
-    465  f1e0		       00		      .byte.b	#%00000000
-    464  f1e0					      REPEND
-    465  f1e1		       00		      .byte.b	#%00000000
-    464  f1e1					      REPEND
-    465  f1e2		       00		      .byte.b	#%00000000
-    464  f1e2					      REPEND
-    465  f1e3		       00		      .byte.b	#%00000000
-    464  f1e3					      REPEND
-    465  f1e4		       00		      .byte.b	#%00000000
-    464  f1e4					      REPEND
-    465  f1e5		       00		      .byte.b	#%00000000
-    464  f1e5					      REPEND
-    465  f1e6		       00		      .byte.b	#%00000000
-    464  f1e6					      REPEND
-    465  f1e7		       00		      .byte.b	#%00000000
-    464  f1e7					      REPEND
-    465  f1e8		       00		      .byte.b	#%00000000
-    464  f1e8					      REPEND
-    465  f1e9		       00		      .byte.b	#%00000000
-    464  f1e9					      REPEND
-    465  f1ea		       00		      .byte.b	#%00000000
-    464  f1ea					      REPEND
-    465  f1eb		       00		      .byte.b	#%00000000
-    464  f1eb					      REPEND
-    465  f1ec		       00		      .byte.b	#%00000000
-    464  f1ec					      REPEND
-    465  f1ed		       00		      .byte.b	#%00000000
-    464  f1ed					      REPEND
-    465  f1ee		       00		      .byte.b	#%00000000
-    464  f1ee					      REPEND
-    465  f1ef		       00		      .byte.b	#%00000000
-    464  f1ef					      REPEND
-    465  f1f0		       00		      .byte.b	#%00000000
-    464  f1f0					      REPEND
-    465  f1f1		       00		      .byte.b	#%00000000
-    464  f1f1					      REPEND
-    465  f1f2		       00		      .byte.b	#%00000000
-    464  f1f2					      REPEND
-    465  f1f3		       00		      .byte.b	#%00000000
-    464  f1f3					      REPEND
-    465  f1f4		       00		      .byte.b	#%00000000
-    464  f1f4					      REPEND
-    465  f1f5		       00		      .byte.b	#%00000000
-    464  f1f5					      REPEND
-    465  f1f6		       00		      .byte.b	#%00000000
-    464  f1f6					      REPEND
-    465  f1f7		       00		      .byte.b	#%00000000
-    464  f1f7					      REPEND
-    465  f1f8		       00		      .byte.b	#%00000000
-    464  f1f8					      REPEND
-    465  f1f9		       00		      .byte.b	#%00000000
-    464  f1f9					      REPEND
-    465  f1fa		       00		      .byte.b	#%00000000
-    464  f1fa					      REPEND
-    465  f1fb		       00		      .byte.b	#%00000000
-    464  f1fb					      REPEND
-    465  f1fc		       00		      .byte.b	#%00000000
-    464  f1fc					      REPEND
-    465  f1fd		       00		      .byte.b	#%00000000
-    464  f1fd					      REPEND
-    465  f1fe		       00		      .byte.b	#%00000000
-    464  f1fe					      REPEND
-    465  f1ff		       00		      .byte.b	#%00000000
-    464  f1ff					      REPEND
-    465  f200		       00		      .byte.b	#%00000000
-    464  f200					      REPEND
-    465  f201		       00		      .byte.b	#%00000000
-    464  f201					      REPEND
-    465  f202		       00		      .byte.b	#%00000000
-    464  f202					      REPEND
-    465  f203		       00		      .byte.b	#%00000000
-    464  f203					      REPEND
-    465  f204		       00		      .byte.b	#%00000000
-    464  f204					      REPEND
-    465  f205		       00		      .byte.b	#%00000000
-    464  f205					      REPEND
-    465  f206		       00		      .byte.b	#%00000000
-    464  f206					      REPEND
-    465  f207		       00		      .byte.b	#%00000000
-    464  f207					      REPEND
-    465  f208		       00		      .byte.b	#%00000000
-    464  f208					      REPEND
-    465  f209		       00		      .byte.b	#%00000000
-    464  f209					      REPEND
-    465  f20a		       00		      .byte.b	#%00000000
-    464  f20a					      REPEND
-    465  f20b		       00		      .byte.b	#%00000000
-    464  f20b					      REPEND
-    465  f20c		       00		      .byte.b	#%00000000
-    464  f20c					      REPEND
-    465  f20d		       00		      .byte.b	#%00000000
-    464  f20d					      REPEND
-    465  f20e		       00		      .byte.b	#%00000000
-    464  f20e					      REPEND
-    465  f20f		       00		      .byte.b	#%00000000
-    464  f20f					      REPEND
-    465  f210		       00		      .byte.b	#%00000000
-    464  f210					      REPEND
-    465  f211		       00		      .byte.b	#%00000000
-    464  f211					      REPEND
-    465  f212		       00		      .byte.b	#%00000000
-    464  f212					      REPEND
-    465  f213		       00		      .byte.b	#%00000000
-    464  f213					      REPEND
-    465  f214		       00		      .byte.b	#%00000000
-    464  f214					      REPEND
-    465  f215		       00		      .byte.b	#%00000000
-    464  f215					      REPEND
-    465  f216		       00		      .byte.b	#%00000000
+    455  f1ae					      REPEND
+    456  f1ae
+    457  f1ae				   LeftPlayfiledPF1
+    458  f1ae					      REPEAT	PlayfiledSize
+    459  f1ae		       ff		      .byte.b	#%11111111
+    458  f1ae					      REPEND
+    459  f1af		       ff		      .byte.b	#%11111111
+    458  f1af					      REPEND
+    459  f1b0		       ff		      .byte.b	#%11111111
+    458  f1b0					      REPEND
+    459  f1b1		       ff		      .byte.b	#%11111111
+    460  f1b2					      REPEND
+    461  f1b2					      REPEAT	[LeftPlatformPosition]
+    462  f1b2		       00		      .byte.b	#%00000000
+    461  f1b2					      REPEND
+    462  f1b3		       00		      .byte.b	#%00000000
+    461  f1b3					      REPEND
+    462  f1b4		       00		      .byte.b	#%00000000
+    461  f1b4					      REPEND
+    462  f1b5		       00		      .byte.b	#%00000000
+    461  f1b5					      REPEND
+    462  f1b6		       00		      .byte.b	#%00000000
+    461  f1b6					      REPEND
+    462  f1b7		       00		      .byte.b	#%00000000
+    461  f1b7					      REPEND
+    462  f1b8		       00		      .byte.b	#%00000000
+    461  f1b8					      REPEND
+    462  f1b9		       00		      .byte.b	#%00000000
+    461  f1b9					      REPEND
+    462  f1ba		       00		      .byte.b	#%00000000
+    461  f1ba					      REPEND
+    462  f1bb		       00		      .byte.b	#%00000000
+    461  f1bb					      REPEND
+    462  f1bc		       00		      .byte.b	#%00000000
+    461  f1bc					      REPEND
+    462  f1bd		       00		      .byte.b	#%00000000
+    461  f1bd					      REPEND
+    462  f1be		       00		      .byte.b	#%00000000
+    461  f1be					      REPEND
+    462  f1bf		       00		      .byte.b	#%00000000
+    461  f1bf					      REPEND
+    462  f1c0		       00		      .byte.b	#%00000000
+    461  f1c0					      REPEND
+    462  f1c1		       00		      .byte.b	#%00000000
+    461  f1c1					      REPEND
+    462  f1c2		       00		      .byte.b	#%00000000
+    461  f1c2					      REPEND
+    462  f1c3		       00		      .byte.b	#%00000000
+    461  f1c3					      REPEND
+    462  f1c4		       00		      .byte.b	#%00000000
+    461  f1c4					      REPEND
+    462  f1c5		       00		      .byte.b	#%00000000
+    461  f1c5					      REPEND
+    462  f1c6		       00		      .byte.b	#%00000000
+    461  f1c6					      REPEND
+    462  f1c7		       00		      .byte.b	#%00000000
+    461  f1c7					      REPEND
+    462  f1c8		       00		      .byte.b	#%00000000
+    461  f1c8					      REPEND
+    462  f1c9		       00		      .byte.b	#%00000000
+    461  f1c9					      REPEND
+    462  f1ca		       00		      .byte.b	#%00000000
+    461  f1ca					      REPEND
+    462  f1cb		       00		      .byte.b	#%00000000
+    461  f1cb					      REPEND
+    462  f1cc		       00		      .byte.b	#%00000000
+    461  f1cc					      REPEND
+    462  f1cd		       00		      .byte.b	#%00000000
+    461  f1cd					      REPEND
+    462  f1ce		       00		      .byte.b	#%00000000
+    461  f1ce					      REPEND
+    462  f1cf		       00		      .byte.b	#%00000000
+    461  f1cf					      REPEND
+    462  f1d0		       00		      .byte.b	#%00000000
+    461  f1d0					      REPEND
+    462  f1d1		       00		      .byte.b	#%00000000
+    461  f1d1					      REPEND
+    462  f1d2		       00		      .byte.b	#%00000000
+    461  f1d2					      REPEND
+    462  f1d3		       00		      .byte.b	#%00000000
+    461  f1d3					      REPEND
+    462  f1d4		       00		      .byte.b	#%00000000
+    461  f1d4					      REPEND
+    462  f1d5		       00		      .byte.b	#%00000000
+    461  f1d5					      REPEND
+    462  f1d6		       00		      .byte.b	#%00000000
+    461  f1d6					      REPEND
+    462  f1d7		       00		      .byte.b	#%00000000
+    461  f1d7					      REPEND
+    462  f1d8		       00		      .byte.b	#%00000000
+    461  f1d8					      REPEND
+    462  f1d9		       00		      .byte.b	#%00000000
+    461  f1d9					      REPEND
+    462  f1da		       00		      .byte.b	#%00000000
+    461  f1da					      REPEND
+    462  f1db		       00		      .byte.b	#%00000000
+    461  f1db					      REPEND
+    462  f1dc		       00		      .byte.b	#%00000000
+    461  f1dc					      REPEND
+    462  f1dd		       00		      .byte.b	#%00000000
+    461  f1dd					      REPEND
+    462  f1de		       00		      .byte.b	#%00000000
+    461  f1de					      REPEND
+    462  f1df		       00		      .byte.b	#%00000000
+    461  f1df					      REPEND
+    462  f1e0		       00		      .byte.b	#%00000000
+    461  f1e0					      REPEND
+    462  f1e1		       00		      .byte.b	#%00000000
+    461  f1e1					      REPEND
+    462  f1e2		       00		      .byte.b	#%00000000
+    461  f1e2					      REPEND
+    462  f1e3		       00		      .byte.b	#%00000000
+    461  f1e3					      REPEND
+    462  f1e4		       00		      .byte.b	#%00000000
+    461  f1e4					      REPEND
+    462  f1e5		       00		      .byte.b	#%00000000
+    461  f1e5					      REPEND
+    462  f1e6		       00		      .byte.b	#%00000000
+    461  f1e6					      REPEND
+    462  f1e7		       00		      .byte.b	#%00000000
+    461  f1e7					      REPEND
+    462  f1e8		       00		      .byte.b	#%00000000
+    461  f1e8					      REPEND
+    462  f1e9		       00		      .byte.b	#%00000000
+    461  f1e9					      REPEND
+    462  f1ea		       00		      .byte.b	#%00000000
+    461  f1ea					      REPEND
+    462  f1eb		       00		      .byte.b	#%00000000
+    461  f1eb					      REPEND
+    462  f1ec		       00		      .byte.b	#%00000000
+    461  f1ec					      REPEND
+    462  f1ed		       00		      .byte.b	#%00000000
+    461  f1ed					      REPEND
+    462  f1ee		       00		      .byte.b	#%00000000
+    461  f1ee					      REPEND
+    462  f1ef		       00		      .byte.b	#%00000000
+    461  f1ef					      REPEND
+    462  f1f0		       00		      .byte.b	#%00000000
+    461  f1f0					      REPEND
+    462  f1f1		       00		      .byte.b	#%00000000
+    461  f1f1					      REPEND
+    462  f1f2		       00		      .byte.b	#%00000000
+    461  f1f2					      REPEND
+    462  f1f3		       00		      .byte.b	#%00000000
+    461  f1f3					      REPEND
+    462  f1f4		       00		      .byte.b	#%00000000
+    461  f1f4					      REPEND
+    462  f1f5		       00		      .byte.b	#%00000000
+    461  f1f5					      REPEND
+    462  f1f6		       00		      .byte.b	#%00000000
+    461  f1f6					      REPEND
+    462  f1f7		       00		      .byte.b	#%00000000
+    461  f1f7					      REPEND
+    462  f1f8		       00		      .byte.b	#%00000000
+    461  f1f8					      REPEND
+    462  f1f9		       00		      .byte.b	#%00000000
+    461  f1f9					      REPEND
+    462  f1fa		       00		      .byte.b	#%00000000
+    461  f1fa					      REPEND
+    462  f1fb		       00		      .byte.b	#%00000000
+    461  f1fb					      REPEND
+    462  f1fc		       00		      .byte.b	#%00000000
+    461  f1fc					      REPEND
+    462  f1fd		       00		      .byte.b	#%00000000
+    461  f1fd					      REPEND
+    462  f1fe		       00		      .byte.b	#%00000000
+    461  f1fe					      REPEND
+    462  f1ff		       00		      .byte.b	#%00000000
+    461  f1ff					      REPEND
+    462  f200		       00		      .byte.b	#%00000000
+    461  f200					      REPEND
+    462  f201		       00		      .byte.b	#%00000000
+    461  f201					      REPEND
+    462  f202		       00		      .byte.b	#%00000000
+    461  f202					      REPEND
+    462  f203		       00		      .byte.b	#%00000000
+    461  f203					      REPEND
+    462  f204		       00		      .byte.b	#%00000000
+    461  f204					      REPEND
+    462  f205		       00		      .byte.b	#%00000000
+    461  f205					      REPEND
+    462  f206		       00		      .byte.b	#%00000000
+    461  f206					      REPEND
+    462  f207		       00		      .byte.b	#%00000000
+    461  f207					      REPEND
+    462  f208		       00		      .byte.b	#%00000000
+    461  f208					      REPEND
+    462  f209		       00		      .byte.b	#%00000000
+    461  f209					      REPEND
+    462  f20a		       00		      .byte.b	#%00000000
+    461  f20a					      REPEND
+    462  f20b		       00		      .byte.b	#%00000000
+    461  f20b					      REPEND
+    462  f20c		       00		      .byte.b	#%00000000
+    461  f20c					      REPEND
+    462  f20d		       00		      .byte.b	#%00000000
+    461  f20d					      REPEND
+    462  f20e		       00		      .byte.b	#%00000000
+    461  f20e					      REPEND
+    462  f20f		       00		      .byte.b	#%00000000
+    461  f20f					      REPEND
+    462  f210		       00		      .byte.b	#%00000000
+    461  f210					      REPEND
+    462  f211		       00		      .byte.b	#%00000000
+    461  f211					      REPEND
+    462  f212		       00		      .byte.b	#%00000000
+    461  f212					      REPEND
+    462  f213		       00		      .byte.b	#%00000000
+    461  f213					      REPEND
+    462  f214		       00		      .byte.b	#%00000000
+    461  f214					      REPEND
+    462  f215		       00		      .byte.b	#%00000000
+    463  f216					      REPEND
+    464  f216					      REPEAT	[PlayfiledSize]
+    465  f216		       ff		      .byte.b	#%11111111
     464  f216					      REPEND
-    465  f217		       00		      .byte.b	#%00000000
+    465  f217		       ff		      .byte.b	#%11111111
     464  f217					      REPEND
-    465  f218		       00		      .byte.b	#%00000000
+    465  f218		       ff		      .byte.b	#%11111111
     464  f218					      REPEND
-    465  f219		       00		      .byte.b	#%00000000
-    464  f219					      REPEND
-    465  f21a		       00		      .byte.b	#%00000000
-    464  f21a					      REPEND
-    465  f21b		       00		      .byte.b	#%00000000
-    464  f21b					      REPEND
-    465  f21c		       00		      .byte.b	#%00000000
-    464  f21c					      REPEND
-    465  f21d		       00		      .byte.b	#%00000000
-    464  f21d					      REPEND
-    465  f21e		       00		      .byte.b	#%00000000
-    464  f21e					      REPEND
-    465  f21f		       00		      .byte.b	#%00000000
-    464  f21f					      REPEND
-    465  f220		       00		      .byte.b	#%00000000
-    464  f220					      REPEND
-    465  f221		       00		      .byte.b	#%00000000
-    464  f221					      REPEND
-    465  f222		       00		      .byte.b	#%00000000
-    464  f222					      REPEND
-    465  f223		       00		      .byte.b	#%00000000
-    464  f223					      REPEND
-    465  f224		       00		      .byte.b	#%00000000
-    464  f224					      REPEND
-    465  f225		       00		      .byte.b	#%00000000
-    464  f225					      REPEND
-    465  f226		       00		      .byte.b	#%00000000
-    464  f226					      REPEND
-    465  f227		       00		      .byte.b	#%00000000
-    464  f227					      REPEND
-    465  f228		       00		      .byte.b	#%00000000
-    464  f228					      REPEND
-    465  f229		       00		      .byte.b	#%00000000
-    464  f229					      REPEND
-    465  f22a		       00		      .byte.b	#%00000000
-    464  f22a					      REPEND
-    465  f22b		       00		      .byte.b	#%00000000
-    464  f22b					      REPEND
-    465  f22c		       00		      .byte.b	#%00000000
-    464  f22c					      REPEND
-    465  f22d		       00		      .byte.b	#%00000000
-    464  f22d					      REPEND
-    465  f22e		       00		      .byte.b	#%00000000
-    464  f22e					      REPEND
-    465  f22f		       00		      .byte.b	#%00000000
-    464  f22f					      REPEND
-    465  f230		       00		      .byte.b	#%00000000
-    464  f230					      REPEND
-    465  f231		       00		      .byte.b	#%00000000
-    464  f231					      REPEND
-    465  f232		       00		      .byte.b	#%00000000
-    464  f232					      REPEND
-    465  f233		       00		      .byte.b	#%00000000
-    464  f233					      REPEND
-    465  f234		       00		      .byte.b	#%00000000
-    464  f234					      REPEND
-    465  f235		       00		      .byte.b	#%00000000
-    464  f235					      REPEND
-    465  f236		       00		      .byte.b	#%00000000
-    464  f236					      REPEND
-    465  f237		       00		      .byte.b	#%00000000
-    464  f237					      REPEND
-    465  f238		       00		      .byte.b	#%00000000
-    464  f238					      REPEND
-    465  f239		       00		      .byte.b	#%00000000
-    464  f239					      REPEND
-    465  f23a		       00		      .byte.b	#%00000000
-    464  f23a					      REPEND
-    465  f23b		       00		      .byte.b	#%00000000
-    464  f23b					      REPEND
-    465  f23c		       00		      .byte.b	#%00000000
-    464  f23c					      REPEND
-    465  f23d		       00		      .byte.b	#%00000000
-    464  f23d					      REPEND
-    465  f23e		       00		      .byte.b	#%00000000
-    464  f23e					      REPEND
-    465  f23f		       00		      .byte.b	#%00000000
-    464  f23f					      REPEND
-    465  f240		       00		      .byte.b	#%00000000
-    464  f240					      REPEND
-    465  f241		       00		      .byte.b	#%00000000
-    464  f241					      REPEND
-    465  f242		       00		      .byte.b	#%00000000
-    464  f242					      REPEND
-    465  f243		       00		      .byte.b	#%00000000
-    464  f243					      REPEND
-    465  f244		       00		      .byte.b	#%00000000
-    464  f244					      REPEND
-    465  f245		       00		      .byte.b	#%00000000
-    464  f245					      REPEND
-    465  f246		       00		      .byte.b	#%00000000
-    464  f246					      REPEND
-    465  f247		       00		      .byte.b	#%00000000
-    464  f247					      REPEND
-    465  f248		       00		      .byte.b	#%00000000
-    464  f248					      REPEND
-    465  f249		       00		      .byte.b	#%00000000
-    464  f249					      REPEND
-    465  f24a		       00		      .byte.b	#%00000000
-    464  f24a					      REPEND
-    465  f24b		       00		      .byte.b	#%00000000
-    464  f24b					      REPEND
-    465  f24c		       00		      .byte.b	#%00000000
-    464  f24c					      REPEND
-    465  f24d		       00		      .byte.b	#%00000000
-    464  f24d					      REPEND
-    465  f24e		       00		      .byte.b	#%00000000
-    464  f24e					      REPEND
-    465  f24f		       00		      .byte.b	#%00000000
-    464  f24f					      REPEND
-    465  f250		       00		      .byte.b	#%00000000
-    464  f250					      REPEND
-    465  f251		       00		      .byte.b	#%00000000
-    464  f251					      REPEND
-    465  f252		       00		      .byte.b	#%00000000
-    464  f252					      REPEND
-    465  f253		       00		      .byte.b	#%00000000
-    464  f253					      REPEND
-    465  f254		       00		      .byte.b	#%00000000
-    464  f254					      REPEND
-    465  f255		       00		      .byte.b	#%00000000
-    464  f255					      REPEND
-    465  f256		       00		      .byte.b	#%00000000
-    464  f256					      REPEND
-    465  f257		       00		      .byte.b	#%00000000
-    464  f257					      REPEND
-    465  f258		       00		      .byte.b	#%00000000
-    464  f258					      REPEND
-    465  f259		       00		      .byte.b	#%00000000
-    464  f259					      REPEND
-    465  f25a		       00		      .byte.b	#%00000000
-    464  f25a					      REPEND
-    465  f25b		       00		      .byte.b	#%00000000
-    464  f25b					      REPEND
-    465  f25c		       00		      .byte.b	#%00000000
-    464  f25c					      REPEND
-    465  f25d		       00		      .byte.b	#%00000000
-    464  f25d					      REPEND
-    465  f25e		       00		      .byte.b	#%00000000
-    464  f25e					      REPEND
-    465  f25f		       00		      .byte.b	#%00000000
-    464  f25f					      REPEND
-    465  f260		       00		      .byte.b	#%00000000
-    464  f260					      REPEND
-    465  f261		       00		      .byte.b	#%00000000
-    464  f261					      REPEND
-    465  f262		       00		      .byte.b	#%00000000
-    464  f262					      REPEND
-    465  f263		       00		      .byte.b	#%00000000
-    464  f263					      REPEND
-    465  f264		       00		      .byte.b	#%00000000
-    464  f264					      REPEND
-    465  f265		       00		      .byte.b	#%00000000
-    464  f265					      REPEND
-    465  f266		       00		      .byte.b	#%00000000
-    464  f266					      REPEND
-    465  f267		       00		      .byte.b	#%00000000
-    464  f267					      REPEND
-    465  f268		       00		      .byte.b	#%00000000
-    464  f268					      REPEND
-    465  f269		       00		      .byte.b	#%00000000
-    464  f269					      REPEND
-    465  f26a		       00		      .byte.b	#%00000000
-    464  f26a					      REPEND
-    465  f26b		       00		      .byte.b	#%00000000
-    464  f26b					      REPEND
-    465  f26c		       00		      .byte.b	#%00000000
-    464  f26c					      REPEND
-    465  f26d		       00		      .byte.b	#%00000000
-    464  f26d					      REPEND
-    465  f26e		       00		      .byte.b	#%00000000
-    464  f26e					      REPEND
-    465  f26f		       00		      .byte.b	#%00000000
-    464  f26f					      REPEND
-    465  f270		       00		      .byte.b	#%00000000
-    464  f270					      REPEND
-    465  f271		       00		      .byte.b	#%00000000
-    464  f271					      REPEND
-    465  f272		       00		      .byte.b	#%00000000
-    464  f272					      REPEND
-    465  f273		       00		      .byte.b	#%00000000
-    464  f273					      REPEND
-    465  f274		       00		      .byte.b	#%00000000
-    464  f274					      REPEND
-    465  f275		       00		      .byte.b	#%00000000
-    464  f275					      REPEND
-    465  f276		       00		      .byte.b	#%00000000
-    464  f276					      REPEND
-    465  f277		       00		      .byte.b	#%00000000
-    464  f277					      REPEND
-    465  f278		       00		      .byte.b	#%00000000
-    464  f278					      REPEND
-    465  f279		       00		      .byte.b	#%00000000
-    464  f279					      REPEND
-    465  f27a		       00		      .byte.b	#%00000000
-    464  f27a					      REPEND
-    465  f27b		       00		      .byte.b	#%00000000
-    464  f27b					      REPEND
-    465  f27c		       00		      .byte.b	#%00000000
-    464  f27c					      REPEND
-    465  f27d		       00		      .byte.b	#%00000000
-    464  f27d					      REPEND
-    465  f27e		       00		      .byte.b	#%00000000
-    464  f27e					      REPEND
-    465  f27f		       00		      .byte.b	#%00000000
-    464  f27f					      REPEND
-    465  f280		       00		      .byte.b	#%00000000
-    464  f280					      REPEND
-    465  f281		       00		      .byte.b	#%00000000
-    464  f281					      REPEND
-    465  f282		       00		      .byte.b	#%00000000
-    466  f283					      REPEND
-    467  f283					      REPEAT	PlayfiledSize
-    468  f283		       ff		      .byte.b	#%11111111
-    469  f284					      REPEND
-    470  f284
-    471  f284				   PlayfiledPF2
-    472  f284					      REPEAT	PlayfiledSize
-    473  f284		       ff		      .byte.b	#%11111111
-    474  f285					      REPEND
-    475  f285					      REPEAT	[VisableScanLinesCount - 2*PlayfiledSize]
-    476  f285		       00		      .byte.b	#%00000000
-    475  f285					      REPEND
-    476  f286		       00		      .byte.b	#%00000000
-    475  f286					      REPEND
-    476  f287		       00		      .byte.b	#%00000000
-    475  f287					      REPEND
-    476  f288		       00		      .byte.b	#%00000000
-    475  f288					      REPEND
-    476  f289		       00		      .byte.b	#%00000000
-    475  f289					      REPEND
-    476  f28a		       00		      .byte.b	#%00000000
-    475  f28a					      REPEND
-    476  f28b		       00		      .byte.b	#%00000000
-    475  f28b					      REPEND
-    476  f28c		       00		      .byte.b	#%00000000
-    475  f28c					      REPEND
-    476  f28d		       00		      .byte.b	#%00000000
-    475  f28d					      REPEND
-    476  f28e		       00		      .byte.b	#%00000000
-    475  f28e					      REPEND
-    476  f28f		       00		      .byte.b	#%00000000
-    475  f28f					      REPEND
-    476  f290		       00		      .byte.b	#%00000000
-    475  f290					      REPEND
-    476  f291		       00		      .byte.b	#%00000000
-    475  f291					      REPEND
-    476  f292		       00		      .byte.b	#%00000000
-    475  f292					      REPEND
-    476  f293		       00		      .byte.b	#%00000000
-    475  f293					      REPEND
-    476  f294		       00		      .byte.b	#%00000000
-    475  f294					      REPEND
-    476  f295		       00		      .byte.b	#%00000000
-    475  f295					      REPEND
-    476  f296		       00		      .byte.b	#%00000000
-    475  f296					      REPEND
-    476  f297		       00		      .byte.b	#%00000000
-    475  f297					      REPEND
-    476  f298		       00		      .byte.b	#%00000000
-    475  f298					      REPEND
-    476  f299		       00		      .byte.b	#%00000000
-    475  f299					      REPEND
-    476  f29a		       00		      .byte.b	#%00000000
-    475  f29a					      REPEND
-    476  f29b		       00		      .byte.b	#%00000000
-    475  f29b					      REPEND
-    476  f29c		       00		      .byte.b	#%00000000
-    475  f29c					      REPEND
-    476  f29d		       00		      .byte.b	#%00000000
-    475  f29d					      REPEND
-    476  f29e		       00		      .byte.b	#%00000000
-    475  f29e					      REPEND
-    476  f29f		       00		      .byte.b	#%00000000
-    475  f29f					      REPEND
-    476  f2a0		       00		      .byte.b	#%00000000
-    475  f2a0					      REPEND
-    476  f2a1		       00		      .byte.b	#%00000000
-    475  f2a1					      REPEND
-    476  f2a2		       00		      .byte.b	#%00000000
-    475  f2a2					      REPEND
-    476  f2a3		       00		      .byte.b	#%00000000
-    475  f2a3					      REPEND
-    476  f2a4		       00		      .byte.b	#%00000000
-    475  f2a4					      REPEND
-    476  f2a5		       00		      .byte.b	#%00000000
-    475  f2a5					      REPEND
-    476  f2a6		       00		      .byte.b	#%00000000
-    475  f2a6					      REPEND
-    476  f2a7		       00		      .byte.b	#%00000000
-    475  f2a7					      REPEND
-    476  f2a8		       00		      .byte.b	#%00000000
-    475  f2a8					      REPEND
-    476  f2a9		       00		      .byte.b	#%00000000
-    475  f2a9					      REPEND
-    476  f2aa		       00		      .byte.b	#%00000000
-    475  f2aa					      REPEND
-    476  f2ab		       00		      .byte.b	#%00000000
-    475  f2ab					      REPEND
-    476  f2ac		       00		      .byte.b	#%00000000
-    475  f2ac					      REPEND
-    476  f2ad		       00		      .byte.b	#%00000000
-    475  f2ad					      REPEND
-    476  f2ae		       00		      .byte.b	#%00000000
-    475  f2ae					      REPEND
-    476  f2af		       00		      .byte.b	#%00000000
-    475  f2af					      REPEND
-    476  f2b0		       00		      .byte.b	#%00000000
-    475  f2b0					      REPEND
-    476  f2b1		       00		      .byte.b	#%00000000
-    475  f2b1					      REPEND
-    476  f2b2		       00		      .byte.b	#%00000000
-    475  f2b2					      REPEND
-    476  f2b3		       00		      .byte.b	#%00000000
-    475  f2b3					      REPEND
-    476  f2b4		       00		      .byte.b	#%00000000
-    475  f2b4					      REPEND
-    476  f2b5		       00		      .byte.b	#%00000000
-    475  f2b5					      REPEND
-    476  f2b6		       00		      .byte.b	#%00000000
-    475  f2b6					      REPEND
-    476  f2b7		       00		      .byte.b	#%00000000
-    475  f2b7					      REPEND
-    476  f2b8		       00		      .byte.b	#%00000000
-    475  f2b8					      REPEND
-    476  f2b9		       00		      .byte.b	#%00000000
-    475  f2b9					      REPEND
-    476  f2ba		       00		      .byte.b	#%00000000
-    475  f2ba					      REPEND
-    476  f2bb		       00		      .byte.b	#%00000000
-    475  f2bb					      REPEND
-    476  f2bc		       00		      .byte.b	#%00000000
-    475  f2bc					      REPEND
-    476  f2bd		       00		      .byte.b	#%00000000
-    475  f2bd					      REPEND
-    476  f2be		       00		      .byte.b	#%00000000
-    475  f2be					      REPEND
-    476  f2bf		       00		      .byte.b	#%00000000
-    475  f2bf					      REPEND
-    476  f2c0		       00		      .byte.b	#%00000000
-    475  f2c0					      REPEND
-    476  f2c1		       00		      .byte.b	#%00000000
-    475  f2c1					      REPEND
-    476  f2c2		       00		      .byte.b	#%00000000
-    475  f2c2					      REPEND
-    476  f2c3		       00		      .byte.b	#%00000000
-    475  f2c3					      REPEND
-    476  f2c4		       00		      .byte.b	#%00000000
-    475  f2c4					      REPEND
-    476  f2c5		       00		      .byte.b	#%00000000
-    475  f2c5					      REPEND
-    476  f2c6		       00		      .byte.b	#%00000000
-    475  f2c6					      REPEND
-    476  f2c7		       00		      .byte.b	#%00000000
-    475  f2c7					      REPEND
-    476  f2c8		       00		      .byte.b	#%00000000
-    475  f2c8					      REPEND
-    476  f2c9		       00		      .byte.b	#%00000000
-    475  f2c9					      REPEND
-    476  f2ca		       00		      .byte.b	#%00000000
-    475  f2ca					      REPEND
-    476  f2cb		       00		      .byte.b	#%00000000
-    475  f2cb					      REPEND
-    476  f2cc		       00		      .byte.b	#%00000000
-    475  f2cc					      REPEND
-    476  f2cd		       00		      .byte.b	#%00000000
-    475  f2cd					      REPEND
-    476  f2ce		       00		      .byte.b	#%00000000
-    475  f2ce					      REPEND
-    476  f2cf		       00		      .byte.b	#%00000000
-    475  f2cf					      REPEND
-    476  f2d0		       00		      .byte.b	#%00000000
-    475  f2d0					      REPEND
-    476  f2d1		       00		      .byte.b	#%00000000
-    475  f2d1					      REPEND
-    476  f2d2		       00		      .byte.b	#%00000000
-    475  f2d2					      REPEND
-    476  f2d3		       00		      .byte.b	#%00000000
-    475  f2d3					      REPEND
-    476  f2d4		       00		      .byte.b	#%00000000
-    475  f2d4					      REPEND
-    476  f2d5		       00		      .byte.b	#%00000000
-    475  f2d5					      REPEND
-    476  f2d6		       00		      .byte.b	#%00000000
-    475  f2d6					      REPEND
-    476  f2d7		       00		      .byte.b	#%00000000
-    475  f2d7					      REPEND
-    476  f2d8		       00		      .byte.b	#%00000000
-    475  f2d8					      REPEND
-    476  f2d9		       00		      .byte.b	#%00000000
-    475  f2d9					      REPEND
-    476  f2da		       00		      .byte.b	#%00000000
-    475  f2da					      REPEND
-    476  f2db		       00		      .byte.b	#%00000000
-    475  f2db					      REPEND
-    476  f2dc		       00		      .byte.b	#%00000000
-    475  f2dc					      REPEND
-    476  f2dd		       00		      .byte.b	#%00000000
-    475  f2dd					      REPEND
-    476  f2de		       00		      .byte.b	#%00000000
-    475  f2de					      REPEND
-    476  f2df		       00		      .byte.b	#%00000000
-    475  f2df					      REPEND
-    476  f2e0		       00		      .byte.b	#%00000000
-    475  f2e0					      REPEND
-    476  f2e1		       00		      .byte.b	#%00000000
-    475  f2e1					      REPEND
-    476  f2e2		       00		      .byte.b	#%00000000
-    475  f2e2					      REPEND
-    476  f2e3		       00		      .byte.b	#%00000000
-    475  f2e3					      REPEND
-    476  f2e4		       00		      .byte.b	#%00000000
-    475  f2e4					      REPEND
-    476  f2e5		       00		      .byte.b	#%00000000
-    475  f2e5					      REPEND
-    476  f2e6		       00		      .byte.b	#%00000000
-    475  f2e6					      REPEND
-    476  f2e7		       00		      .byte.b	#%00000000
-    475  f2e7					      REPEND
-    476  f2e8		       00		      .byte.b	#%00000000
-    475  f2e8					      REPEND
-    476  f2e9		       00		      .byte.b	#%00000000
-    475  f2e9					      REPEND
-    476  f2ea		       00		      .byte.b	#%00000000
-    475  f2ea					      REPEND
-    476  f2eb		       00		      .byte.b	#%00000000
-    475  f2eb					      REPEND
-    476  f2ec		       00		      .byte.b	#%00000000
-    475  f2ec					      REPEND
-    476  f2ed		       00		      .byte.b	#%00000000
-    475  f2ed					      REPEND
-    476  f2ee		       00		      .byte.b	#%00000000
-    475  f2ee					      REPEND
-    476  f2ef		       00		      .byte.b	#%00000000
-    475  f2ef					      REPEND
-    476  f2f0		       00		      .byte.b	#%00000000
-    475  f2f0					      REPEND
-    476  f2f1		       00		      .byte.b	#%00000000
-    475  f2f1					      REPEND
-    476  f2f2		       00		      .byte.b	#%00000000
-    475  f2f2					      REPEND
-    476  f2f3		       00		      .byte.b	#%00000000
-    475  f2f3					      REPEND
-    476  f2f4		       00		      .byte.b	#%00000000
-    475  f2f4					      REPEND
-    476  f2f5		       00		      .byte.b	#%00000000
-    475  f2f5					      REPEND
-    476  f2f6		       00		      .byte.b	#%00000000
-    475  f2f6					      REPEND
-    476  f2f7		       00		      .byte.b	#%00000000
-    475  f2f7					      REPEND
-    476  f2f8		       00		      .byte.b	#%00000000
-    475  f2f8					      REPEND
-    476  f2f9		       00		      .byte.b	#%00000000
-    475  f2f9					      REPEND
-    476  f2fa		       00		      .byte.b	#%00000000
-    475  f2fa					      REPEND
-    476  f2fb		       00		      .byte.b	#%00000000
-    475  f2fb					      REPEND
-    476  f2fc		       00		      .byte.b	#%00000000
-    475  f2fc					      REPEND
-    476  f2fd		       00		      .byte.b	#%00000000
-    475  f2fd					      REPEND
-    476  f2fe		       00		      .byte.b	#%00000000
-    475  f2fe					      REPEND
-    476  f2ff		       00		      .byte.b	#%00000000
-    475  f2ff					      REPEND
-    476  f300		       00		      .byte.b	#%00000000
-    475  f300					      REPEND
-    476  f301		       00		      .byte.b	#%00000000
-    475  f301					      REPEND
-    476  f302		       00		      .byte.b	#%00000000
-    475  f302					      REPEND
-    476  f303		       00		      .byte.b	#%00000000
-    475  f303					      REPEND
-    476  f304		       00		      .byte.b	#%00000000
-    475  f304					      REPEND
-    476  f305		       00		      .byte.b	#%00000000
-    475  f305					      REPEND
-    476  f306		       00		      .byte.b	#%00000000
-    475  f306					      REPEND
-    476  f307		       00		      .byte.b	#%00000000
-    475  f307					      REPEND
-    476  f308		       00		      .byte.b	#%00000000
-    475  f308					      REPEND
-    476  f309		       00		      .byte.b	#%00000000
-    475  f309					      REPEND
-    476  f30a		       00		      .byte.b	#%00000000
-    475  f30a					      REPEND
-    476  f30b		       00		      .byte.b	#%00000000
-    475  f30b					      REPEND
-    476  f30c		       00		      .byte.b	#%00000000
-    475  f30c					      REPEND
-    476  f30d		       00		      .byte.b	#%00000000
-    475  f30d					      REPEND
-    476  f30e		       00		      .byte.b	#%00000000
-    475  f30e					      REPEND
-    476  f30f		       00		      .byte.b	#%00000000
-    475  f30f					      REPEND
-    476  f310		       00		      .byte.b	#%00000000
-    475  f310					      REPEND
-    476  f311		       00		      .byte.b	#%00000000
-    475  f311					      REPEND
-    476  f312		       00		      .byte.b	#%00000000
-    475  f312					      REPEND
-    476  f313		       00		      .byte.b	#%00000000
-    475  f313					      REPEND
-    476  f314		       00		      .byte.b	#%00000000
-    475  f314					      REPEND
-    476  f315		       00		      .byte.b	#%00000000
-    475  f315					      REPEND
-    476  f316		       00		      .byte.b	#%00000000
-    475  f316					      REPEND
-    476  f317		       00		      .byte.b	#%00000000
-    475  f317					      REPEND
-    476  f318		       00		      .byte.b	#%00000000
-    475  f318					      REPEND
-    476  f319		       00		      .byte.b	#%00000000
-    475  f319					      REPEND
-    476  f31a		       00		      .byte.b	#%00000000
-    475  f31a					      REPEND
-    476  f31b		       00		      .byte.b	#%00000000
-    475  f31b					      REPEND
-    476  f31c		       00		      .byte.b	#%00000000
-    475  f31c					      REPEND
-    476  f31d		       00		      .byte.b	#%00000000
-    475  f31d					      REPEND
-    476  f31e		       00		      .byte.b	#%00000000
-    475  f31e					      REPEND
-    476  f31f		       00		      .byte.b	#%00000000
-    475  f31f					      REPEND
-    476  f320		       00		      .byte.b	#%00000000
-    475  f320					      REPEND
-    476  f321		       00		      .byte.b	#%00000000
-    475  f321					      REPEND
-    476  f322		       00		      .byte.b	#%00000000
-    475  f322					      REPEND
-    476  f323		       00		      .byte.b	#%00000000
-    475  f323					      REPEND
-    476  f324		       00		      .byte.b	#%00000000
-    475  f324					      REPEND
-    476  f325		       00		      .byte.b	#%00000000
-    475  f325					      REPEND
-    476  f326		       00		      .byte.b	#%00000000
-    475  f326					      REPEND
-    476  f327		       00		      .byte.b	#%00000000
-    475  f327					      REPEND
-    476  f328		       00		      .byte.b	#%00000000
-    475  f328					      REPEND
-    476  f329		       00		      .byte.b	#%00000000
-    475  f329					      REPEND
-    476  f32a		       00		      .byte.b	#%00000000
-    475  f32a					      REPEND
-    476  f32b		       00		      .byte.b	#%00000000
-    475  f32b					      REPEND
-    476  f32c		       00		      .byte.b	#%00000000
-    475  f32c					      REPEND
-    476  f32d		       00		      .byte.b	#%00000000
-    475  f32d					      REPEND
-    476  f32e		       00		      .byte.b	#%00000000
-    475  f32e					      REPEND
-    476  f32f		       00		      .byte.b	#%00000000
-    475  f32f					      REPEND
-    476  f330		       00		      .byte.b	#%00000000
-    475  f330					      REPEND
-    476  f331		       00		      .byte.b	#%00000000
-    475  f331					      REPEND
-    476  f332		       00		      .byte.b	#%00000000
-    475  f332					      REPEND
-    476  f333		       00		      .byte.b	#%00000000
-    475  f333					      REPEND
-    476  f334		       00		      .byte.b	#%00000000
-    475  f334					      REPEND
-    476  f335		       00		      .byte.b	#%00000000
-    475  f335					      REPEND
-    476  f336		       00		      .byte.b	#%00000000
-    475  f336					      REPEND
-    476  f337		       00		      .byte.b	#%00000000
-    475  f337					      REPEND
-    476  f338		       00		      .byte.b	#%00000000
-    475  f338					      REPEND
-    476  f339		       00		      .byte.b	#%00000000
-    475  f339					      REPEND
-    476  f33a		       00		      .byte.b	#%00000000
-    475  f33a					      REPEND
-    476  f33b		       00		      .byte.b	#%00000000
-    475  f33b					      REPEND
-    476  f33c		       00		      .byte.b	#%00000000
-    475  f33c					      REPEND
-    476  f33d		       00		      .byte.b	#%00000000
-    475  f33d					      REPEND
-    476  f33e		       00		      .byte.b	#%00000000
-    475  f33e					      REPEND
-    476  f33f		       00		      .byte.b	#%00000000
-    475  f33f					      REPEND
-    476  f340		       00		      .byte.b	#%00000000
-    475  f340					      REPEND
-    476  f341		       00		      .byte.b	#%00000000
-    475  f341					      REPEND
-    476  f342		       00		      .byte.b	#%00000000
-    477  f343					      REPEND
-    478  f343					      REPEAT	PlayfiledSize
-    479  f343		       ff		      .byte.b	#%11111111
-    480  f344					      REPEND
-    481  f344							; OK, last little bit of crap to take care of.
-    482  f344							; there are two special memory locations, $FFFC and $FFFE
-    483  f344							; When the atari starts up, a "reset" is done (which has nothing to do with
-    484  f344							; the reset switch on the console!) When this happens, the 6502 looks at
-    485  f344							; memory location $FFFC (and by extension its neighbor $FFFD, since it's
-    486  f344							; seaching for both bytes of a full memory address)  and then goes to the
-    487  f344							; location pointed to by $FFFC/$FFFD...so our first .word Start tells DASM
-    488  f344							; to put the binary data that we labeled "Start" at the location we established
-    489  f344							; with org.  And then we do it again for $FFFE/$FFFF, which is for a special
-    490  f344							; event called a BRK which you don't have to worry about now.
-    491  f344
-    492  fffc					      org	$FFFC
-    493  fffc		       00 f0		      .word.w	Start
-    494  fffe		       00 f0		      .word.w	Start
+    465  f219		       ff		      .byte.b	#%11111111
+    466  f21a					      REPEND
+    467  f21a					      REPEAT	[VisableScanLinesCount - LeftPlatformPosition - 3*PlayfiledSize]
+    468  f21a		       00		      .byte.b	#%00000000
+    467  f21a					      REPEND
+    468  f21b		       00		      .byte.b	#%00000000
+    467  f21b					      REPEND
+    468  f21c		       00		      .byte.b	#%00000000
+    467  f21c					      REPEND
+    468  f21d		       00		      .byte.b	#%00000000
+    467  f21d					      REPEND
+    468  f21e		       00		      .byte.b	#%00000000
+    467  f21e					      REPEND
+    468  f21f		       00		      .byte.b	#%00000000
+    467  f21f					      REPEND
+    468  f220		       00		      .byte.b	#%00000000
+    467  f220					      REPEND
+    468  f221		       00		      .byte.b	#%00000000
+    467  f221					      REPEND
+    468  f222		       00		      .byte.b	#%00000000
+    467  f222					      REPEND
+    468  f223		       00		      .byte.b	#%00000000
+    467  f223					      REPEND
+    468  f224		       00		      .byte.b	#%00000000
+    467  f224					      REPEND
+    468  f225		       00		      .byte.b	#%00000000
+    467  f225					      REPEND
+    468  f226		       00		      .byte.b	#%00000000
+    467  f226					      REPEND
+    468  f227		       00		      .byte.b	#%00000000
+    467  f227					      REPEND
+    468  f228		       00		      .byte.b	#%00000000
+    467  f228					      REPEND
+    468  f229		       00		      .byte.b	#%00000000
+    467  f229					      REPEND
+    468  f22a		       00		      .byte.b	#%00000000
+    467  f22a					      REPEND
+    468  f22b		       00		      .byte.b	#%00000000
+    467  f22b					      REPEND
+    468  f22c		       00		      .byte.b	#%00000000
+    467  f22c					      REPEND
+    468  f22d		       00		      .byte.b	#%00000000
+    467  f22d					      REPEND
+    468  f22e		       00		      .byte.b	#%00000000
+    467  f22e					      REPEND
+    468  f22f		       00		      .byte.b	#%00000000
+    467  f22f					      REPEND
+    468  f230		       00		      .byte.b	#%00000000
+    467  f230					      REPEND
+    468  f231		       00		      .byte.b	#%00000000
+    467  f231					      REPEND
+    468  f232		       00		      .byte.b	#%00000000
+    467  f232					      REPEND
+    468  f233		       00		      .byte.b	#%00000000
+    467  f233					      REPEND
+    468  f234		       00		      .byte.b	#%00000000
+    467  f234					      REPEND
+    468  f235		       00		      .byte.b	#%00000000
+    467  f235					      REPEND
+    468  f236		       00		      .byte.b	#%00000000
+    467  f236					      REPEND
+    468  f237		       00		      .byte.b	#%00000000
+    467  f237					      REPEND
+    468  f238		       00		      .byte.b	#%00000000
+    467  f238					      REPEND
+    468  f239		       00		      .byte.b	#%00000000
+    467  f239					      REPEND
+    468  f23a		       00		      .byte.b	#%00000000
+    467  f23a					      REPEND
+    468  f23b		       00		      .byte.b	#%00000000
+    467  f23b					      REPEND
+    468  f23c		       00		      .byte.b	#%00000000
+    467  f23c					      REPEND
+    468  f23d		       00		      .byte.b	#%00000000
+    467  f23d					      REPEND
+    468  f23e		       00		      .byte.b	#%00000000
+    467  f23e					      REPEND
+    468  f23f		       00		      .byte.b	#%00000000
+    467  f23f					      REPEND
+    468  f240		       00		      .byte.b	#%00000000
+    467  f240					      REPEND
+    468  f241		       00		      .byte.b	#%00000000
+    467  f241					      REPEND
+    468  f242		       00		      .byte.b	#%00000000
+    467  f242					      REPEND
+    468  f243		       00		      .byte.b	#%00000000
+    467  f243					      REPEND
+    468  f244		       00		      .byte.b	#%00000000
+    467  f244					      REPEND
+    468  f245		       00		      .byte.b	#%00000000
+    467  f245					      REPEND
+    468  f246		       00		      .byte.b	#%00000000
+    467  f246					      REPEND
+    468  f247		       00		      .byte.b	#%00000000
+    467  f247					      REPEND
+    468  f248		       00		      .byte.b	#%00000000
+    467  f248					      REPEND
+    468  f249		       00		      .byte.b	#%00000000
+    467  f249					      REPEND
+    468  f24a		       00		      .byte.b	#%00000000
+    467  f24a					      REPEND
+    468  f24b		       00		      .byte.b	#%00000000
+    467  f24b					      REPEND
+    468  f24c		       00		      .byte.b	#%00000000
+    467  f24c					      REPEND
+    468  f24d		       00		      .byte.b	#%00000000
+    467  f24d					      REPEND
+    468  f24e		       00		      .byte.b	#%00000000
+    467  f24e					      REPEND
+    468  f24f		       00		      .byte.b	#%00000000
+    467  f24f					      REPEND
+    468  f250		       00		      .byte.b	#%00000000
+    467  f250					      REPEND
+    468  f251		       00		      .byte.b	#%00000000
+    467  f251					      REPEND
+    468  f252		       00		      .byte.b	#%00000000
+    467  f252					      REPEND
+    468  f253		       00		      .byte.b	#%00000000
+    467  f253					      REPEND
+    468  f254		       00		      .byte.b	#%00000000
+    467  f254					      REPEND
+    468  f255		       00		      .byte.b	#%00000000
+    467  f255					      REPEND
+    468  f256		       00		      .byte.b	#%00000000
+    467  f256					      REPEND
+    468  f257		       00		      .byte.b	#%00000000
+    467  f257					      REPEND
+    468  f258		       00		      .byte.b	#%00000000
+    467  f258					      REPEND
+    468  f259		       00		      .byte.b	#%00000000
+    467  f259					      REPEND
+    468  f25a		       00		      .byte.b	#%00000000
+    467  f25a					      REPEND
+    468  f25b		       00		      .byte.b	#%00000000
+    467  f25b					      REPEND
+    468  f25c		       00		      .byte.b	#%00000000
+    467  f25c					      REPEND
+    468  f25d		       00		      .byte.b	#%00000000
+    467  f25d					      REPEND
+    468  f25e		       00		      .byte.b	#%00000000
+    467  f25e					      REPEND
+    468  f25f		       00		      .byte.b	#%00000000
+    467  f25f					      REPEND
+    468  f260		       00		      .byte.b	#%00000000
+    467  f260					      REPEND
+    468  f261		       00		      .byte.b	#%00000000
+    467  f261					      REPEND
+    468  f262		       00		      .byte.b	#%00000000
+    467  f262					      REPEND
+    468  f263		       00		      .byte.b	#%00000000
+    467  f263					      REPEND
+    468  f264		       00		      .byte.b	#%00000000
+    467  f264					      REPEND
+    468  f265		       00		      .byte.b	#%00000000
+    467  f265					      REPEND
+    468  f266		       00		      .byte.b	#%00000000
+    467  f266					      REPEND
+    468  f267		       00		      .byte.b	#%00000000
+    467  f267					      REPEND
+    468  f268		       00		      .byte.b	#%00000000
+    467  f268					      REPEND
+    468  f269		       00		      .byte.b	#%00000000
+    469  f26a					      REPEND
+    470  f26a					      REPEAT	PlayfiledSize
+    471  f26a		       00		      .byte.b	#%00000000
+    470  f26a					      REPEND
+    471  f26b		       00		      .byte.b	#%00000000
+    470  f26b					      REPEND
+    471  f26c		       00		      .byte.b	#%00000000
+    470  f26c					      REPEND
+    471  f26d		       00		      .byte.b	#%00000000
+    472  f26e					      REPEND
+    473  f26e
+    474  f26e				   LeftPlayfiledPF2
+    475  f26e					      REPEAT	PlayfiledSize
+    476  f26e		       ff		      .byte.b	#%11111111
+    475  f26e					      REPEND
+    476  f26f		       ff		      .byte.b	#%11111111
+    475  f26f					      REPEND
+    476  f270		       ff		      .byte.b	#%11111111
+    475  f270					      REPEND
+    476  f271		       ff		      .byte.b	#%11111111
+    477  f272					      REPEND
+    478  f272					      REPEAT	[LeftPlatformPosition]
+    479  f272		       00		      .byte.b	#%00000000
+    478  f272					      REPEND
+    479  f273		       00		      .byte.b	#%00000000
+    478  f273					      REPEND
+    479  f274		       00		      .byte.b	#%00000000
+    478  f274					      REPEND
+    479  f275		       00		      .byte.b	#%00000000
+    478  f275					      REPEND
+    479  f276		       00		      .byte.b	#%00000000
+    478  f276					      REPEND
+    479  f277		       00		      .byte.b	#%00000000
+    478  f277					      REPEND
+    479  f278		       00		      .byte.b	#%00000000
+    478  f278					      REPEND
+    479  f279		       00		      .byte.b	#%00000000
+    478  f279					      REPEND
+    479  f27a		       00		      .byte.b	#%00000000
+    478  f27a					      REPEND
+    479  f27b		       00		      .byte.b	#%00000000
+    478  f27b					      REPEND
+    479  f27c		       00		      .byte.b	#%00000000
+    478  f27c					      REPEND
+    479  f27d		       00		      .byte.b	#%00000000
+    478  f27d					      REPEND
+    479  f27e		       00		      .byte.b	#%00000000
+    478  f27e					      REPEND
+    479  f27f		       00		      .byte.b	#%00000000
+    478  f27f					      REPEND
+    479  f280		       00		      .byte.b	#%00000000
+    478  f280					      REPEND
+    479  f281		       00		      .byte.b	#%00000000
+    478  f281					      REPEND
+    479  f282		       00		      .byte.b	#%00000000
+    478  f282					      REPEND
+    479  f283		       00		      .byte.b	#%00000000
+    478  f283					      REPEND
+    479  f284		       00		      .byte.b	#%00000000
+    478  f284					      REPEND
+    479  f285		       00		      .byte.b	#%00000000
+    478  f285					      REPEND
+    479  f286		       00		      .byte.b	#%00000000
+    478  f286					      REPEND
+    479  f287		       00		      .byte.b	#%00000000
+    478  f287					      REPEND
+    479  f288		       00		      .byte.b	#%00000000
+    478  f288					      REPEND
+    479  f289		       00		      .byte.b	#%00000000
+    478  f289					      REPEND
+    479  f28a		       00		      .byte.b	#%00000000
+    478  f28a					      REPEND
+    479  f28b		       00		      .byte.b	#%00000000
+    478  f28b					      REPEND
+    479  f28c		       00		      .byte.b	#%00000000
+    478  f28c					      REPEND
+    479  f28d		       00		      .byte.b	#%00000000
+    478  f28d					      REPEND
+    479  f28e		       00		      .byte.b	#%00000000
+    478  f28e					      REPEND
+    479  f28f		       00		      .byte.b	#%00000000
+    478  f28f					      REPEND
+    479  f290		       00		      .byte.b	#%00000000
+    478  f290					      REPEND
+    479  f291		       00		      .byte.b	#%00000000
+    478  f291					      REPEND
+    479  f292		       00		      .byte.b	#%00000000
+    478  f292					      REPEND
+    479  f293		       00		      .byte.b	#%00000000
+    478  f293					      REPEND
+    479  f294		       00		      .byte.b	#%00000000
+    478  f294					      REPEND
+    479  f295		       00		      .byte.b	#%00000000
+    478  f295					      REPEND
+    479  f296		       00		      .byte.b	#%00000000
+    478  f296					      REPEND
+    479  f297		       00		      .byte.b	#%00000000
+    478  f297					      REPEND
+    479  f298		       00		      .byte.b	#%00000000
+    478  f298					      REPEND
+    479  f299		       00		      .byte.b	#%00000000
+    478  f299					      REPEND
+    479  f29a		       00		      .byte.b	#%00000000
+    478  f29a					      REPEND
+    479  f29b		       00		      .byte.b	#%00000000
+    478  f29b					      REPEND
+    479  f29c		       00		      .byte.b	#%00000000
+    478  f29c					      REPEND
+    479  f29d		       00		      .byte.b	#%00000000
+    478  f29d					      REPEND
+    479  f29e		       00		      .byte.b	#%00000000
+    478  f29e					      REPEND
+    479  f29f		       00		      .byte.b	#%00000000
+    478  f29f					      REPEND
+    479  f2a0		       00		      .byte.b	#%00000000
+    478  f2a0					      REPEND
+    479  f2a1		       00		      .byte.b	#%00000000
+    478  f2a1					      REPEND
+    479  f2a2		       00		      .byte.b	#%00000000
+    478  f2a2					      REPEND
+    479  f2a3		       00		      .byte.b	#%00000000
+    478  f2a3					      REPEND
+    479  f2a4		       00		      .byte.b	#%00000000
+    478  f2a4					      REPEND
+    479  f2a5		       00		      .byte.b	#%00000000
+    478  f2a5					      REPEND
+    479  f2a6		       00		      .byte.b	#%00000000
+    478  f2a6					      REPEND
+    479  f2a7		       00		      .byte.b	#%00000000
+    478  f2a7					      REPEND
+    479  f2a8		       00		      .byte.b	#%00000000
+    478  f2a8					      REPEND
+    479  f2a9		       00		      .byte.b	#%00000000
+    478  f2a9					      REPEND
+    479  f2aa		       00		      .byte.b	#%00000000
+    478  f2aa					      REPEND
+    479  f2ab		       00		      .byte.b	#%00000000
+    478  f2ab					      REPEND
+    479  f2ac		       00		      .byte.b	#%00000000
+    478  f2ac					      REPEND
+    479  f2ad		       00		      .byte.b	#%00000000
+    478  f2ad					      REPEND
+    479  f2ae		       00		      .byte.b	#%00000000
+    478  f2ae					      REPEND
+    479  f2af		       00		      .byte.b	#%00000000
+    478  f2af					      REPEND
+    479  f2b0		       00		      .byte.b	#%00000000
+    478  f2b0					      REPEND
+    479  f2b1		       00		      .byte.b	#%00000000
+    478  f2b1					      REPEND
+    479  f2b2		       00		      .byte.b	#%00000000
+    478  f2b2					      REPEND
+    479  f2b3		       00		      .byte.b	#%00000000
+    478  f2b3					      REPEND
+    479  f2b4		       00		      .byte.b	#%00000000
+    478  f2b4					      REPEND
+    479  f2b5		       00		      .byte.b	#%00000000
+    478  f2b5					      REPEND
+    479  f2b6		       00		      .byte.b	#%00000000
+    478  f2b6					      REPEND
+    479  f2b7		       00		      .byte.b	#%00000000
+    478  f2b7					      REPEND
+    479  f2b8		       00		      .byte.b	#%00000000
+    478  f2b8					      REPEND
+    479  f2b9		       00		      .byte.b	#%00000000
+    478  f2b9					      REPEND
+    479  f2ba		       00		      .byte.b	#%00000000
+    478  f2ba					      REPEND
+    479  f2bb		       00		      .byte.b	#%00000000
+    478  f2bb					      REPEND
+    479  f2bc		       00		      .byte.b	#%00000000
+    478  f2bc					      REPEND
+    479  f2bd		       00		      .byte.b	#%00000000
+    478  f2bd					      REPEND
+    479  f2be		       00		      .byte.b	#%00000000
+    478  f2be					      REPEND
+    479  f2bf		       00		      .byte.b	#%00000000
+    478  f2bf					      REPEND
+    479  f2c0		       00		      .byte.b	#%00000000
+    478  f2c0					      REPEND
+    479  f2c1		       00		      .byte.b	#%00000000
+    478  f2c1					      REPEND
+    479  f2c2		       00		      .byte.b	#%00000000
+    478  f2c2					      REPEND
+    479  f2c3		       00		      .byte.b	#%00000000
+    478  f2c3					      REPEND
+    479  f2c4		       00		      .byte.b	#%00000000
+    478  f2c4					      REPEND
+    479  f2c5		       00		      .byte.b	#%00000000
+    478  f2c5					      REPEND
+    479  f2c6		       00		      .byte.b	#%00000000
+    478  f2c6					      REPEND
+    479  f2c7		       00		      .byte.b	#%00000000
+    478  f2c7					      REPEND
+    479  f2c8		       00		      .byte.b	#%00000000
+    478  f2c8					      REPEND
+    479  f2c9		       00		      .byte.b	#%00000000
+    478  f2c9					      REPEND
+    479  f2ca		       00		      .byte.b	#%00000000
+    478  f2ca					      REPEND
+    479  f2cb		       00		      .byte.b	#%00000000
+    478  f2cb					      REPEND
+    479  f2cc		       00		      .byte.b	#%00000000
+    478  f2cc					      REPEND
+    479  f2cd		       00		      .byte.b	#%00000000
+    478  f2cd					      REPEND
+    479  f2ce		       00		      .byte.b	#%00000000
+    478  f2ce					      REPEND
+    479  f2cf		       00		      .byte.b	#%00000000
+    478  f2cf					      REPEND
+    479  f2d0		       00		      .byte.b	#%00000000
+    478  f2d0					      REPEND
+    479  f2d1		       00		      .byte.b	#%00000000
+    478  f2d1					      REPEND
+    479  f2d2		       00		      .byte.b	#%00000000
+    478  f2d2					      REPEND
+    479  f2d3		       00		      .byte.b	#%00000000
+    478  f2d3					      REPEND
+    479  f2d4		       00		      .byte.b	#%00000000
+    478  f2d4					      REPEND
+    479  f2d5		       00		      .byte.b	#%00000000
+    480  f2d6					      REPEND
+    481  f2d6					      REPEAT	[PlayfiledSize]
+    482  f2d6		       ff		      .byte.b	#%11111111
+    481  f2d6					      REPEND
+    482  f2d7		       ff		      .byte.b	#%11111111
+    481  f2d7					      REPEND
+    482  f2d8		       ff		      .byte.b	#%11111111
+    481  f2d8					      REPEND
+    482  f2d9		       ff		      .byte.b	#%11111111
+    483  f2da					      REPEND
+    484  f2da					      REPEAT	[VisableScanLinesCount - LeftPlatformPosition - 3*PlayfiledSize]
+    485  f2da		       00		      .byte.b	#%00000000
+    484  f2da					      REPEND
+    485  f2db		       00		      .byte.b	#%00000000
+    484  f2db					      REPEND
+    485  f2dc		       00		      .byte.b	#%00000000
+    484  f2dc					      REPEND
+    485  f2dd		       00		      .byte.b	#%00000000
+    484  f2dd					      REPEND
+    485  f2de		       00		      .byte.b	#%00000000
+    484  f2de					      REPEND
+    485  f2df		       00		      .byte.b	#%00000000
+    484  f2df					      REPEND
+    485  f2e0		       00		      .byte.b	#%00000000
+    484  f2e0					      REPEND
+    485  f2e1		       00		      .byte.b	#%00000000
+    484  f2e1					      REPEND
+    485  f2e2		       00		      .byte.b	#%00000000
+    484  f2e2					      REPEND
+    485  f2e3		       00		      .byte.b	#%00000000
+    484  f2e3					      REPEND
+    485  f2e4		       00		      .byte.b	#%00000000
+    484  f2e4					      REPEND
+    485  f2e5		       00		      .byte.b	#%00000000
+    484  f2e5					      REPEND
+    485  f2e6		       00		      .byte.b	#%00000000
+    484  f2e6					      REPEND
+    485  f2e7		       00		      .byte.b	#%00000000
+    484  f2e7					      REPEND
+    485  f2e8		       00		      .byte.b	#%00000000
+    484  f2e8					      REPEND
+    485  f2e9		       00		      .byte.b	#%00000000
+    484  f2e9					      REPEND
+    485  f2ea		       00		      .byte.b	#%00000000
+    484  f2ea					      REPEND
+    485  f2eb		       00		      .byte.b	#%00000000
+    484  f2eb					      REPEND
+    485  f2ec		       00		      .byte.b	#%00000000
+    484  f2ec					      REPEND
+    485  f2ed		       00		      .byte.b	#%00000000
+    484  f2ed					      REPEND
+    485  f2ee		       00		      .byte.b	#%00000000
+    484  f2ee					      REPEND
+    485  f2ef		       00		      .byte.b	#%00000000
+    484  f2ef					      REPEND
+    485  f2f0		       00		      .byte.b	#%00000000
+    484  f2f0					      REPEND
+    485  f2f1		       00		      .byte.b	#%00000000
+    484  f2f1					      REPEND
+    485  f2f2		       00		      .byte.b	#%00000000
+    484  f2f2					      REPEND
+    485  f2f3		       00		      .byte.b	#%00000000
+    484  f2f3					      REPEND
+    485  f2f4		       00		      .byte.b	#%00000000
+    484  f2f4					      REPEND
+    485  f2f5		       00		      .byte.b	#%00000000
+    484  f2f5					      REPEND
+    485  f2f6		       00		      .byte.b	#%00000000
+    484  f2f6					      REPEND
+    485  f2f7		       00		      .byte.b	#%00000000
+    484  f2f7					      REPEND
+    485  f2f8		       00		      .byte.b	#%00000000
+    484  f2f8					      REPEND
+    485  f2f9		       00		      .byte.b	#%00000000
+    484  f2f9					      REPEND
+    485  f2fa		       00		      .byte.b	#%00000000
+    484  f2fa					      REPEND
+    485  f2fb		       00		      .byte.b	#%00000000
+    484  f2fb					      REPEND
+    485  f2fc		       00		      .byte.b	#%00000000
+    484  f2fc					      REPEND
+    485  f2fd		       00		      .byte.b	#%00000000
+    484  f2fd					      REPEND
+    485  f2fe		       00		      .byte.b	#%00000000
+    484  f2fe					      REPEND
+    485  f2ff		       00		      .byte.b	#%00000000
+    484  f2ff					      REPEND
+    485  f300		       00		      .byte.b	#%00000000
+    484  f300					      REPEND
+    485  f301		       00		      .byte.b	#%00000000
+    484  f301					      REPEND
+    485  f302		       00		      .byte.b	#%00000000
+    484  f302					      REPEND
+    485  f303		       00		      .byte.b	#%00000000
+    484  f303					      REPEND
+    485  f304		       00		      .byte.b	#%00000000
+    484  f304					      REPEND
+    485  f305		       00		      .byte.b	#%00000000
+    484  f305					      REPEND
+    485  f306		       00		      .byte.b	#%00000000
+    484  f306					      REPEND
+    485  f307		       00		      .byte.b	#%00000000
+    484  f307					      REPEND
+    485  f308		       00		      .byte.b	#%00000000
+    484  f308					      REPEND
+    485  f309		       00		      .byte.b	#%00000000
+    484  f309					      REPEND
+    485  f30a		       00		      .byte.b	#%00000000
+    484  f30a					      REPEND
+    485  f30b		       00		      .byte.b	#%00000000
+    484  f30b					      REPEND
+    485  f30c		       00		      .byte.b	#%00000000
+    484  f30c					      REPEND
+    485  f30d		       00		      .byte.b	#%00000000
+    484  f30d					      REPEND
+    485  f30e		       00		      .byte.b	#%00000000
+    484  f30e					      REPEND
+    485  f30f		       00		      .byte.b	#%00000000
+    484  f30f					      REPEND
+    485  f310		       00		      .byte.b	#%00000000
+    484  f310					      REPEND
+    485  f311		       00		      .byte.b	#%00000000
+    484  f311					      REPEND
+    485  f312		       00		      .byte.b	#%00000000
+    484  f312					      REPEND
+    485  f313		       00		      .byte.b	#%00000000
+    484  f313					      REPEND
+    485  f314		       00		      .byte.b	#%00000000
+    484  f314					      REPEND
+    485  f315		       00		      .byte.b	#%00000000
+    484  f315					      REPEND
+    485  f316		       00		      .byte.b	#%00000000
+    484  f316					      REPEND
+    485  f317		       00		      .byte.b	#%00000000
+    484  f317					      REPEND
+    485  f318		       00		      .byte.b	#%00000000
+    484  f318					      REPEND
+    485  f319		       00		      .byte.b	#%00000000
+    484  f319					      REPEND
+    485  f31a		       00		      .byte.b	#%00000000
+    484  f31a					      REPEND
+    485  f31b		       00		      .byte.b	#%00000000
+    484  f31b					      REPEND
+    485  f31c		       00		      .byte.b	#%00000000
+    484  f31c					      REPEND
+    485  f31d		       00		      .byte.b	#%00000000
+    484  f31d					      REPEND
+    485  f31e		       00		      .byte.b	#%00000000
+    484  f31e					      REPEND
+    485  f31f		       00		      .byte.b	#%00000000
+    484  f31f					      REPEND
+    485  f320		       00		      .byte.b	#%00000000
+    484  f320					      REPEND
+    485  f321		       00		      .byte.b	#%00000000
+    484  f321					      REPEND
+    485  f322		       00		      .byte.b	#%00000000
+    484  f322					      REPEND
+    485  f323		       00		      .byte.b	#%00000000
+    484  f323					      REPEND
+    485  f324		       00		      .byte.b	#%00000000
+    484  f324					      REPEND
+    485  f325		       00		      .byte.b	#%00000000
+    484  f325					      REPEND
+    485  f326		       00		      .byte.b	#%00000000
+    484  f326					      REPEND
+    485  f327		       00		      .byte.b	#%00000000
+    484  f327					      REPEND
+    485  f328		       00		      .byte.b	#%00000000
+    484  f328					      REPEND
+    485  f329		       00		      .byte.b	#%00000000
+    486  f32a					      REPEND
+    487  f32a					      REPEAT	PlayfiledSize
+    488  f32a		       00		      .byte.b	#%00000000
+    487  f32a					      REPEND
+    488  f32b		       00		      .byte.b	#%00000000
+    487  f32b					      REPEND
+    488  f32c		       00		      .byte.b	#%00000000
+    487  f32c					      REPEND
+    488  f32d		       00		      .byte.b	#%00000000
+    489  f32e					      REPEND
+    490  f32e
+    491  f32e
+    492  f32e		       00 32	   RightPlatformPosition =	50
+    493  f32e
+    494  f32e				   RightPlayfiledPF0
+    495  f32e					      REPEAT	PlayfiledSize
+    496  f32e		       ff		      .byte.b	#%11111111
+    495  f32e					      REPEND
+    496  f32f		       ff		      .byte.b	#%11111111
+    495  f32f					      REPEND
+    496  f330		       ff		      .byte.b	#%11111111
+    495  f330					      REPEND
+    496  f331		       ff		      .byte.b	#%11111111
+    497  f332					      REPEND
+    498  f332					      REPEAT	[RightPlatformPosition]
+    499  f332		       00		      .byte.b	#%00000000
+    498  f332					      REPEND
+    499  f333		       00		      .byte.b	#%00000000
+    498  f333					      REPEND
+    499  f334		       00		      .byte.b	#%00000000
+    498  f334					      REPEND
+    499  f335		       00		      .byte.b	#%00000000
+    498  f335					      REPEND
+    499  f336		       00		      .byte.b	#%00000000
+    498  f336					      REPEND
+    499  f337		       00		      .byte.b	#%00000000
+    498  f337					      REPEND
+    499  f338		       00		      .byte.b	#%00000000
+    498  f338					      REPEND
+    499  f339		       00		      .byte.b	#%00000000
+    498  f339					      REPEND
+    499  f33a		       00		      .byte.b	#%00000000
+    498  f33a					      REPEND
+    499  f33b		       00		      .byte.b	#%00000000
+    498  f33b					      REPEND
+    499  f33c		       00		      .byte.b	#%00000000
+    498  f33c					      REPEND
+    499  f33d		       00		      .byte.b	#%00000000
+    498  f33d					      REPEND
+    499  f33e		       00		      .byte.b	#%00000000
+    498  f33e					      REPEND
+    499  f33f		       00		      .byte.b	#%00000000
+    498  f33f					      REPEND
+    499  f340		       00		      .byte.b	#%00000000
+    498  f340					      REPEND
+    499  f341		       00		      .byte.b	#%00000000
+    498  f341					      REPEND
+    499  f342		       00		      .byte.b	#%00000000
+    498  f342					      REPEND
+    499  f343		       00		      .byte.b	#%00000000
+    498  f343					      REPEND
+    499  f344		       00		      .byte.b	#%00000000
+    498  f344					      REPEND
+    499  f345		       00		      .byte.b	#%00000000
+    498  f345					      REPEND
+    499  f346		       00		      .byte.b	#%00000000
+    498  f346					      REPEND
+    499  f347		       00		      .byte.b	#%00000000
+    498  f347					      REPEND
+    499  f348		       00		      .byte.b	#%00000000
+    498  f348					      REPEND
+    499  f349		       00		      .byte.b	#%00000000
+    498  f349					      REPEND
+    499  f34a		       00		      .byte.b	#%00000000
+    498  f34a					      REPEND
+    499  f34b		       00		      .byte.b	#%00000000
+    498  f34b					      REPEND
+    499  f34c		       00		      .byte.b	#%00000000
+    498  f34c					      REPEND
+    499  f34d		       00		      .byte.b	#%00000000
+    498  f34d					      REPEND
+    499  f34e		       00		      .byte.b	#%00000000
+    498  f34e					      REPEND
+    499  f34f		       00		      .byte.b	#%00000000
+    498  f34f					      REPEND
+    499  f350		       00		      .byte.b	#%00000000
+    498  f350					      REPEND
+    499  f351		       00		      .byte.b	#%00000000
+    498  f351					      REPEND
+    499  f352		       00		      .byte.b	#%00000000
+    498  f352					      REPEND
+    499  f353		       00		      .byte.b	#%00000000
+    498  f353					      REPEND
+    499  f354		       00		      .byte.b	#%00000000
+    498  f354					      REPEND
+    499  f355		       00		      .byte.b	#%00000000
+    498  f355					      REPEND
+    499  f356		       00		      .byte.b	#%00000000
+    498  f356					      REPEND
+    499  f357		       00		      .byte.b	#%00000000
+    498  f357					      REPEND
+    499  f358		       00		      .byte.b	#%00000000
+    498  f358					      REPEND
+    499  f359		       00		      .byte.b	#%00000000
+    498  f359					      REPEND
+    499  f35a		       00		      .byte.b	#%00000000
+    498  f35a					      REPEND
+    499  f35b		       00		      .byte.b	#%00000000
+    498  f35b					      REPEND
+    499  f35c		       00		      .byte.b	#%00000000
+    498  f35c					      REPEND
+    499  f35d		       00		      .byte.b	#%00000000
+    498  f35d					      REPEND
+    499  f35e		       00		      .byte.b	#%00000000
+    498  f35e					      REPEND
+    499  f35f		       00		      .byte.b	#%00000000
+    498  f35f					      REPEND
+    499  f360		       00		      .byte.b	#%00000000
+    498  f360					      REPEND
+    499  f361		       00		      .byte.b	#%00000000
+    498  f361					      REPEND
+    499  f362		       00		      .byte.b	#%00000000
+    498  f362					      REPEND
+    499  f363		       00		      .byte.b	#%00000000
+    500  f364					      REPEND
+    501  f364					      REPEAT	[PlayfiledSize]
+    502  f364		       ff		      .byte.b	#%11111111
+    501  f364					      REPEND
+    502  f365		       ff		      .byte.b	#%11111111
+    501  f365					      REPEND
+    502  f366		       ff		      .byte.b	#%11111111
+    501  f366					      REPEND
+    502  f367		       ff		      .byte.b	#%11111111
+    503  f368					      REPEND
+    504  f368					      REPEAT	[VisableScanLinesCount - RightPlatformPosition - 3*PlayfiledSize]
+    505  f368		       00		      .byte.b	#%00000000
+    504  f368					      REPEND
+    505  f369		       00		      .byte.b	#%00000000
+    504  f369					      REPEND
+    505  f36a		       00		      .byte.b	#%00000000
+    504  f36a					      REPEND
+    505  f36b		       00		      .byte.b	#%00000000
+    504  f36b					      REPEND
+    505  f36c		       00		      .byte.b	#%00000000
+    504  f36c					      REPEND
+    505  f36d		       00		      .byte.b	#%00000000
+    504  f36d					      REPEND
+    505  f36e		       00		      .byte.b	#%00000000
+    504  f36e					      REPEND
+    505  f36f		       00		      .byte.b	#%00000000
+    504  f36f					      REPEND
+    505  f370		       00		      .byte.b	#%00000000
+    504  f370					      REPEND
+    505  f371		       00		      .byte.b	#%00000000
+    504  f371					      REPEND
+    505  f372		       00		      .byte.b	#%00000000
+    504  f372					      REPEND
+    505  f373		       00		      .byte.b	#%00000000
+    504  f373					      REPEND
+    505  f374		       00		      .byte.b	#%00000000
+    504  f374					      REPEND
+    505  f375		       00		      .byte.b	#%00000000
+    504  f375					      REPEND
+    505  f376		       00		      .byte.b	#%00000000
+    504  f376					      REPEND
+    505  f377		       00		      .byte.b	#%00000000
+    504  f377					      REPEND
+    505  f378		       00		      .byte.b	#%00000000
+    504  f378					      REPEND
+    505  f379		       00		      .byte.b	#%00000000
+    504  f379					      REPEND
+    505  f37a		       00		      .byte.b	#%00000000
+    504  f37a					      REPEND
+    505  f37b		       00		      .byte.b	#%00000000
+    504  f37b					      REPEND
+    505  f37c		       00		      .byte.b	#%00000000
+    504  f37c					      REPEND
+    505  f37d		       00		      .byte.b	#%00000000
+    504  f37d					      REPEND
+    505  f37e		       00		      .byte.b	#%00000000
+    504  f37e					      REPEND
+    505  f37f		       00		      .byte.b	#%00000000
+    504  f37f					      REPEND
+    505  f380		       00		      .byte.b	#%00000000
+    504  f380					      REPEND
+    505  f381		       00		      .byte.b	#%00000000
+    504  f381					      REPEND
+    505  f382		       00		      .byte.b	#%00000000
+    504  f382					      REPEND
+    505  f383		       00		      .byte.b	#%00000000
+    504  f383					      REPEND
+    505  f384		       00		      .byte.b	#%00000000
+    504  f384					      REPEND
+    505  f385		       00		      .byte.b	#%00000000
+    504  f385					      REPEND
+    505  f386		       00		      .byte.b	#%00000000
+    504  f386					      REPEND
+    505  f387		       00		      .byte.b	#%00000000
+    504  f387					      REPEND
+    505  f388		       00		      .byte.b	#%00000000
+    504  f388					      REPEND
+    505  f389		       00		      .byte.b	#%00000000
+    504  f389					      REPEND
+    505  f38a		       00		      .byte.b	#%00000000
+    504  f38a					      REPEND
+    505  f38b		       00		      .byte.b	#%00000000
+    504  f38b					      REPEND
+    505  f38c		       00		      .byte.b	#%00000000
+    504  f38c					      REPEND
+    505  f38d		       00		      .byte.b	#%00000000
+    504  f38d					      REPEND
+    505  f38e		       00		      .byte.b	#%00000000
+    504  f38e					      REPEND
+    505  f38f		       00		      .byte.b	#%00000000
+    504  f38f					      REPEND
+    505  f390		       00		      .byte.b	#%00000000
+    504  f390					      REPEND
+    505  f391		       00		      .byte.b	#%00000000
+    504  f391					      REPEND
+    505  f392		       00		      .byte.b	#%00000000
+    504  f392					      REPEND
+    505  f393		       00		      .byte.b	#%00000000
+    504  f393					      REPEND
+    505  f394		       00		      .byte.b	#%00000000
+    504  f394					      REPEND
+    505  f395		       00		      .byte.b	#%00000000
+    504  f395					      REPEND
+    505  f396		       00		      .byte.b	#%00000000
+    504  f396					      REPEND
+    505  f397		       00		      .byte.b	#%00000000
+    504  f397					      REPEND
+    505  f398		       00		      .byte.b	#%00000000
+    504  f398					      REPEND
+    505  f399		       00		      .byte.b	#%00000000
+    504  f399					      REPEND
+    505  f39a		       00		      .byte.b	#%00000000
+    504  f39a					      REPEND
+    505  f39b		       00		      .byte.b	#%00000000
+    504  f39b					      REPEND
+    505  f39c		       00		      .byte.b	#%00000000
+    504  f39c					      REPEND
+    505  f39d		       00		      .byte.b	#%00000000
+    504  f39d					      REPEND
+    505  f39e		       00		      .byte.b	#%00000000
+    504  f39e					      REPEND
+    505  f39f		       00		      .byte.b	#%00000000
+    504  f39f					      REPEND
+    505  f3a0		       00		      .byte.b	#%00000000
+    504  f3a0					      REPEND
+    505  f3a1		       00		      .byte.b	#%00000000
+    504  f3a1					      REPEND
+    505  f3a2		       00		      .byte.b	#%00000000
+    504  f3a2					      REPEND
+    505  f3a3		       00		      .byte.b	#%00000000
+    504  f3a3					      REPEND
+    505  f3a4		       00		      .byte.b	#%00000000
+    504  f3a4					      REPEND
+    505  f3a5		       00		      .byte.b	#%00000000
+    504  f3a5					      REPEND
+    505  f3a6		       00		      .byte.b	#%00000000
+    504  f3a6					      REPEND
+    505  f3a7		       00		      .byte.b	#%00000000
+    504  f3a7					      REPEND
+    505  f3a8		       00		      .byte.b	#%00000000
+    504  f3a8					      REPEND
+    505  f3a9		       00		      .byte.b	#%00000000
+    504  f3a9					      REPEND
+    505  f3aa		       00		      .byte.b	#%00000000
+    504  f3aa					      REPEND
+    505  f3ab		       00		      .byte.b	#%00000000
+    504  f3ab					      REPEND
+    505  f3ac		       00		      .byte.b	#%00000000
+    504  f3ac					      REPEND
+    505  f3ad		       00		      .byte.b	#%00000000
+    504  f3ad					      REPEND
+    505  f3ae		       00		      .byte.b	#%00000000
+    504  f3ae					      REPEND
+    505  f3af		       00		      .byte.b	#%00000000
+    504  f3af					      REPEND
+    505  f3b0		       00		      .byte.b	#%00000000
+    504  f3b0					      REPEND
+    505  f3b1		       00		      .byte.b	#%00000000
+    504  f3b1					      REPEND
+    505  f3b2		       00		      .byte.b	#%00000000
+    504  f3b2					      REPEND
+    505  f3b3		       00		      .byte.b	#%00000000
+    504  f3b3					      REPEND
+    505  f3b4		       00		      .byte.b	#%00000000
+    504  f3b4					      REPEND
+    505  f3b5		       00		      .byte.b	#%00000000
+    504  f3b5					      REPEND
+    505  f3b6		       00		      .byte.b	#%00000000
+    504  f3b6					      REPEND
+    505  f3b7		       00		      .byte.b	#%00000000
+    504  f3b7					      REPEND
+    505  f3b8		       00		      .byte.b	#%00000000
+    504  f3b8					      REPEND
+    505  f3b9		       00		      .byte.b	#%00000000
+    504  f3b9					      REPEND
+    505  f3ba		       00		      .byte.b	#%00000000
+    504  f3ba					      REPEND
+    505  f3bb		       00		      .byte.b	#%00000000
+    504  f3bb					      REPEND
+    505  f3bc		       00		      .byte.b	#%00000000
+    504  f3bc					      REPEND
+    505  f3bd		       00		      .byte.b	#%00000000
+    504  f3bd					      REPEND
+    505  f3be		       00		      .byte.b	#%00000000
+    504  f3be					      REPEND
+    505  f3bf		       00		      .byte.b	#%00000000
+    504  f3bf					      REPEND
+    505  f3c0		       00		      .byte.b	#%00000000
+    504  f3c0					      REPEND
+    505  f3c1		       00		      .byte.b	#%00000000
+    504  f3c1					      REPEND
+    505  f3c2		       00		      .byte.b	#%00000000
+    504  f3c2					      REPEND
+    505  f3c3		       00		      .byte.b	#%00000000
+    504  f3c3					      REPEND
+    505  f3c4		       00		      .byte.b	#%00000000
+    504  f3c4					      REPEND
+    505  f3c5		       00		      .byte.b	#%00000000
+    504  f3c5					      REPEND
+    505  f3c6		       00		      .byte.b	#%00000000
+    504  f3c6					      REPEND
+    505  f3c7		       00		      .byte.b	#%00000000
+    504  f3c7					      REPEND
+    505  f3c8		       00		      .byte.b	#%00000000
+    504  f3c8					      REPEND
+    505  f3c9		       00		      .byte.b	#%00000000
+    504  f3c9					      REPEND
+    505  f3ca		       00		      .byte.b	#%00000000
+    504  f3ca					      REPEND
+    505  f3cb		       00		      .byte.b	#%00000000
+    504  f3cb					      REPEND
+    505  f3cc		       00		      .byte.b	#%00000000
+    504  f3cc					      REPEND
+    505  f3cd		       00		      .byte.b	#%00000000
+    504  f3cd					      REPEND
+    505  f3ce		       00		      .byte.b	#%00000000
+    504  f3ce					      REPEND
+    505  f3cf		       00		      .byte.b	#%00000000
+    504  f3cf					      REPEND
+    505  f3d0		       00		      .byte.b	#%00000000
+    504  f3d0					      REPEND
+    505  f3d1		       00		      .byte.b	#%00000000
+    504  f3d1					      REPEND
+    505  f3d2		       00		      .byte.b	#%00000000
+    504  f3d2					      REPEND
+    505  f3d3		       00		      .byte.b	#%00000000
+    504  f3d3					      REPEND
+    505  f3d4		       00		      .byte.b	#%00000000
+    504  f3d4					      REPEND
+    505  f3d5		       00		      .byte.b	#%00000000
+    504  f3d5					      REPEND
+    505  f3d6		       00		      .byte.b	#%00000000
+    504  f3d6					      REPEND
+    505  f3d7		       00		      .byte.b	#%00000000
+    504  f3d7					      REPEND
+    505  f3d8		       00		      .byte.b	#%00000000
+    504  f3d8					      REPEND
+    505  f3d9		       00		      .byte.b	#%00000000
+    504  f3d9					      REPEND
+    505  f3da		       00		      .byte.b	#%00000000
+    504  f3da					      REPEND
+    505  f3db		       00		      .byte.b	#%00000000
+    504  f3db					      REPEND
+    505  f3dc		       00		      .byte.b	#%00000000
+    504  f3dc					      REPEND
+    505  f3dd		       00		      .byte.b	#%00000000
+    504  f3dd					      REPEND
+    505  f3de		       00		      .byte.b	#%00000000
+    504  f3de					      REPEND
+    505  f3df		       00		      .byte.b	#%00000000
+    504  f3df					      REPEND
+    505  f3e0		       00		      .byte.b	#%00000000
+    504  f3e0					      REPEND
+    505  f3e1		       00		      .byte.b	#%00000000
+    504  f3e1					      REPEND
+    505  f3e2		       00		      .byte.b	#%00000000
+    504  f3e2					      REPEND
+    505  f3e3		       00		      .byte.b	#%00000000
+    504  f3e3					      REPEND
+    505  f3e4		       00		      .byte.b	#%00000000
+    504  f3e4					      REPEND
+    505  f3e5		       00		      .byte.b	#%00000000
+    504  f3e5					      REPEND
+    505  f3e6		       00		      .byte.b	#%00000000
+    504  f3e6					      REPEND
+    505  f3e7		       00		      .byte.b	#%00000000
+    504  f3e7					      REPEND
+    505  f3e8		       00		      .byte.b	#%00000000
+    504  f3e8					      REPEND
+    505  f3e9		       00		      .byte.b	#%00000000
+    506  f3ea					      REPEND
+    507  f3ea					      REPEAT	PlayfiledSize
+    508  f3ea		       00		      .byte.b	#%00000000
+    507  f3ea					      REPEND
+    508  f3eb		       00		      .byte.b	#%00000000
+    507  f3eb					      REPEND
+    508  f3ec		       00		      .byte.b	#%00000000
+    507  f3ec					      REPEND
+    508  f3ed		       00		      .byte.b	#%00000000
+    509  f3ee					      REPEND
+    510  f3ee
+    511  f3ee				   RightPlayfiledPF1
+    512  f3ee					      REPEAT	PlayfiledSize
+    513  f3ee		       ff		      .byte.b	#%11111111
+    512  f3ee					      REPEND
+    513  f3ef		       ff		      .byte.b	#%11111111
+    512  f3ef					      REPEND
+    513  f3f0		       ff		      .byte.b	#%11111111
+    512  f3f0					      REPEND
+    513  f3f1		       ff		      .byte.b	#%11111111
+    514  f3f2					      REPEND
+    515  f3f2					      REPEAT	[RightPlatformPosition]
+    516  f3f2		       00		      .byte.b	#%00000000
+    515  f3f2					      REPEND
+    516  f3f3		       00		      .byte.b	#%00000000
+    515  f3f3					      REPEND
+    516  f3f4		       00		      .byte.b	#%00000000
+    515  f3f4					      REPEND
+    516  f3f5		       00		      .byte.b	#%00000000
+    515  f3f5					      REPEND
+    516  f3f6		       00		      .byte.b	#%00000000
+    515  f3f6					      REPEND
+    516  f3f7		       00		      .byte.b	#%00000000
+    515  f3f7					      REPEND
+    516  f3f8		       00		      .byte.b	#%00000000
+    515  f3f8					      REPEND
+    516  f3f9		       00		      .byte.b	#%00000000
+    515  f3f9					      REPEND
+    516  f3fa		       00		      .byte.b	#%00000000
+    515  f3fa					      REPEND
+    516  f3fb		       00		      .byte.b	#%00000000
+    515  f3fb					      REPEND
+    516  f3fc		       00		      .byte.b	#%00000000
+    515  f3fc					      REPEND
+    516  f3fd		       00		      .byte.b	#%00000000
+    515  f3fd					      REPEND
+    516  f3fe		       00		      .byte.b	#%00000000
+    515  f3fe					      REPEND
+    516  f3ff		       00		      .byte.b	#%00000000
+    515  f3ff					      REPEND
+    516  f400		       00		      .byte.b	#%00000000
+    515  f400					      REPEND
+    516  f401		       00		      .byte.b	#%00000000
+    515  f401					      REPEND
+    516  f402		       00		      .byte.b	#%00000000
+    515  f402					      REPEND
+    516  f403		       00		      .byte.b	#%00000000
+    515  f403					      REPEND
+    516  f404		       00		      .byte.b	#%00000000
+    515  f404					      REPEND
+    516  f405		       00		      .byte.b	#%00000000
+    515  f405					      REPEND
+    516  f406		       00		      .byte.b	#%00000000
+    515  f406					      REPEND
+    516  f407		       00		      .byte.b	#%00000000
+    515  f407					      REPEND
+    516  f408		       00		      .byte.b	#%00000000
+    515  f408					      REPEND
+    516  f409		       00		      .byte.b	#%00000000
+    515  f409					      REPEND
+    516  f40a		       00		      .byte.b	#%00000000
+    515  f40a					      REPEND
+    516  f40b		       00		      .byte.b	#%00000000
+    515  f40b					      REPEND
+    516  f40c		       00		      .byte.b	#%00000000
+    515  f40c					      REPEND
+    516  f40d		       00		      .byte.b	#%00000000
+    515  f40d					      REPEND
+    516  f40e		       00		      .byte.b	#%00000000
+    515  f40e					      REPEND
+    516  f40f		       00		      .byte.b	#%00000000
+    515  f40f					      REPEND
+    516  f410		       00		      .byte.b	#%00000000
+    515  f410					      REPEND
+    516  f411		       00		      .byte.b	#%00000000
+    515  f411					      REPEND
+    516  f412		       00		      .byte.b	#%00000000
+    515  f412					      REPEND
+    516  f413		       00		      .byte.b	#%00000000
+    515  f413					      REPEND
+    516  f414		       00		      .byte.b	#%00000000
+    515  f414					      REPEND
+    516  f415		       00		      .byte.b	#%00000000
+    515  f415					      REPEND
+    516  f416		       00		      .byte.b	#%00000000
+    515  f416					      REPEND
+    516  f417		       00		      .byte.b	#%00000000
+    515  f417					      REPEND
+    516  f418		       00		      .byte.b	#%00000000
+    515  f418					      REPEND
+    516  f419		       00		      .byte.b	#%00000000
+    515  f419					      REPEND
+    516  f41a		       00		      .byte.b	#%00000000
+    515  f41a					      REPEND
+    516  f41b		       00		      .byte.b	#%00000000
+    515  f41b					      REPEND
+    516  f41c		       00		      .byte.b	#%00000000
+    515  f41c					      REPEND
+    516  f41d		       00		      .byte.b	#%00000000
+    515  f41d					      REPEND
+    516  f41e		       00		      .byte.b	#%00000000
+    515  f41e					      REPEND
+    516  f41f		       00		      .byte.b	#%00000000
+    515  f41f					      REPEND
+    516  f420		       00		      .byte.b	#%00000000
+    515  f420					      REPEND
+    516  f421		       00		      .byte.b	#%00000000
+    515  f421					      REPEND
+    516  f422		       00		      .byte.b	#%00000000
+    515  f422					      REPEND
+    516  f423		       00		      .byte.b	#%00000000
+    517  f424					      REPEND
+    518  f424					      REPEAT	[PlayfiledSize]
+    519  f424		       ff		      .byte.b	#%11111111
+    518  f424					      REPEND
+    519  f425		       ff		      .byte.b	#%11111111
+    518  f425					      REPEND
+    519  f426		       ff		      .byte.b	#%11111111
+    518  f426					      REPEND
+    519  f427		       ff		      .byte.b	#%11111111
+    520  f428					      REPEND
+    521  f428					      REPEAT	[VisableScanLinesCount - RightPlatformPosition - 3*PlayfiledSize]
+    522  f428		       00		      .byte.b	#%00000000
+    521  f428					      REPEND
+    522  f429		       00		      .byte.b	#%00000000
+    521  f429					      REPEND
+    522  f42a		       00		      .byte.b	#%00000000
+    521  f42a					      REPEND
+    522  f42b		       00		      .byte.b	#%00000000
+    521  f42b					      REPEND
+    522  f42c		       00		      .byte.b	#%00000000
+    521  f42c					      REPEND
+    522  f42d		       00		      .byte.b	#%00000000
+    521  f42d					      REPEND
+    522  f42e		       00		      .byte.b	#%00000000
+    521  f42e					      REPEND
+    522  f42f		       00		      .byte.b	#%00000000
+    521  f42f					      REPEND
+    522  f430		       00		      .byte.b	#%00000000
+    521  f430					      REPEND
+    522  f431		       00		      .byte.b	#%00000000
+    521  f431					      REPEND
+    522  f432		       00		      .byte.b	#%00000000
+    521  f432					      REPEND
+    522  f433		       00		      .byte.b	#%00000000
+    521  f433					      REPEND
+    522  f434		       00		      .byte.b	#%00000000
+    521  f434					      REPEND
+    522  f435		       00		      .byte.b	#%00000000
+    521  f435					      REPEND
+    522  f436		       00		      .byte.b	#%00000000
+    521  f436					      REPEND
+    522  f437		       00		      .byte.b	#%00000000
+    521  f437					      REPEND
+    522  f438		       00		      .byte.b	#%00000000
+    521  f438					      REPEND
+    522  f439		       00		      .byte.b	#%00000000
+    521  f439					      REPEND
+    522  f43a		       00		      .byte.b	#%00000000
+    521  f43a					      REPEND
+    522  f43b		       00		      .byte.b	#%00000000
+    521  f43b					      REPEND
+    522  f43c		       00		      .byte.b	#%00000000
+    521  f43c					      REPEND
+    522  f43d		       00		      .byte.b	#%00000000
+    521  f43d					      REPEND
+    522  f43e		       00		      .byte.b	#%00000000
+    521  f43e					      REPEND
+    522  f43f		       00		      .byte.b	#%00000000
+    521  f43f					      REPEND
+    522  f440		       00		      .byte.b	#%00000000
+    521  f440					      REPEND
+    522  f441		       00		      .byte.b	#%00000000
+    521  f441					      REPEND
+    522  f442		       00		      .byte.b	#%00000000
+    521  f442					      REPEND
+    522  f443		       00		      .byte.b	#%00000000
+    521  f443					      REPEND
+    522  f444		       00		      .byte.b	#%00000000
+    521  f444					      REPEND
+    522  f445		       00		      .byte.b	#%00000000
+    521  f445					      REPEND
+    522  f446		       00		      .byte.b	#%00000000
+    521  f446					      REPEND
+    522  f447		       00		      .byte.b	#%00000000
+    521  f447					      REPEND
+    522  f448		       00		      .byte.b	#%00000000
+    521  f448					      REPEND
+    522  f449		       00		      .byte.b	#%00000000
+    521  f449					      REPEND
+    522  f44a		       00		      .byte.b	#%00000000
+    521  f44a					      REPEND
+    522  f44b		       00		      .byte.b	#%00000000
+    521  f44b					      REPEND
+    522  f44c		       00		      .byte.b	#%00000000
+    521  f44c					      REPEND
+    522  f44d		       00		      .byte.b	#%00000000
+    521  f44d					      REPEND
+    522  f44e		       00		      .byte.b	#%00000000
+    521  f44e					      REPEND
+    522  f44f		       00		      .byte.b	#%00000000
+    521  f44f					      REPEND
+    522  f450		       00		      .byte.b	#%00000000
+    521  f450					      REPEND
+    522  f451		       00		      .byte.b	#%00000000
+    521  f451					      REPEND
+    522  f452		       00		      .byte.b	#%00000000
+    521  f452					      REPEND
+    522  f453		       00		      .byte.b	#%00000000
+    521  f453					      REPEND
+    522  f454		       00		      .byte.b	#%00000000
+    521  f454					      REPEND
+    522  f455		       00		      .byte.b	#%00000000
+    521  f455					      REPEND
+    522  f456		       00		      .byte.b	#%00000000
+    521  f456					      REPEND
+    522  f457		       00		      .byte.b	#%00000000
+    521  f457					      REPEND
+    522  f458		       00		      .byte.b	#%00000000
+    521  f458					      REPEND
+    522  f459		       00		      .byte.b	#%00000000
+    521  f459					      REPEND
+    522  f45a		       00		      .byte.b	#%00000000
+    521  f45a					      REPEND
+    522  f45b		       00		      .byte.b	#%00000000
+    521  f45b					      REPEND
+    522  f45c		       00		      .byte.b	#%00000000
+    521  f45c					      REPEND
+    522  f45d		       00		      .byte.b	#%00000000
+    521  f45d					      REPEND
+    522  f45e		       00		      .byte.b	#%00000000
+    521  f45e					      REPEND
+    522  f45f		       00		      .byte.b	#%00000000
+    521  f45f					      REPEND
+    522  f460		       00		      .byte.b	#%00000000
+    521  f460					      REPEND
+    522  f461		       00		      .byte.b	#%00000000
+    521  f461					      REPEND
+    522  f462		       00		      .byte.b	#%00000000
+    521  f462					      REPEND
+    522  f463		       00		      .byte.b	#%00000000
+    521  f463					      REPEND
+    522  f464		       00		      .byte.b	#%00000000
+    521  f464					      REPEND
+    522  f465		       00		      .byte.b	#%00000000
+    521  f465					      REPEND
+    522  f466		       00		      .byte.b	#%00000000
+    521  f466					      REPEND
+    522  f467		       00		      .byte.b	#%00000000
+    521  f467					      REPEND
+    522  f468		       00		      .byte.b	#%00000000
+    521  f468					      REPEND
+    522  f469		       00		      .byte.b	#%00000000
+    521  f469					      REPEND
+    522  f46a		       00		      .byte.b	#%00000000
+    521  f46a					      REPEND
+    522  f46b		       00		      .byte.b	#%00000000
+    521  f46b					      REPEND
+    522  f46c		       00		      .byte.b	#%00000000
+    521  f46c					      REPEND
+    522  f46d		       00		      .byte.b	#%00000000
+    521  f46d					      REPEND
+    522  f46e		       00		      .byte.b	#%00000000
+    521  f46e					      REPEND
+    522  f46f		       00		      .byte.b	#%00000000
+    521  f46f					      REPEND
+    522  f470		       00		      .byte.b	#%00000000
+    521  f470					      REPEND
+    522  f471		       00		      .byte.b	#%00000000
+    521  f471					      REPEND
+    522  f472		       00		      .byte.b	#%00000000
+    521  f472					      REPEND
+    522  f473		       00		      .byte.b	#%00000000
+    521  f473					      REPEND
+    522  f474		       00		      .byte.b	#%00000000
+    521  f474					      REPEND
+    522  f475		       00		      .byte.b	#%00000000
+    521  f475					      REPEND
+    522  f476		       00		      .byte.b	#%00000000
+    521  f476					      REPEND
+    522  f477		       00		      .byte.b	#%00000000
+    521  f477					      REPEND
+    522  f478		       00		      .byte.b	#%00000000
+    521  f478					      REPEND
+    522  f479		       00		      .byte.b	#%00000000
+    521  f479					      REPEND
+    522  f47a		       00		      .byte.b	#%00000000
+    521  f47a					      REPEND
+    522  f47b		       00		      .byte.b	#%00000000
+    521  f47b					      REPEND
+    522  f47c		       00		      .byte.b	#%00000000
+    521  f47c					      REPEND
+    522  f47d		       00		      .byte.b	#%00000000
+    521  f47d					      REPEND
+    522  f47e		       00		      .byte.b	#%00000000
+    521  f47e					      REPEND
+    522  f47f		       00		      .byte.b	#%00000000
+    521  f47f					      REPEND
+    522  f480		       00		      .byte.b	#%00000000
+    521  f480					      REPEND
+    522  f481		       00		      .byte.b	#%00000000
+    521  f481					      REPEND
+    522  f482		       00		      .byte.b	#%00000000
+    521  f482					      REPEND
+    522  f483		       00		      .byte.b	#%00000000
+    521  f483					      REPEND
+    522  f484		       00		      .byte.b	#%00000000
+    521  f484					      REPEND
+    522  f485		       00		      .byte.b	#%00000000
+    521  f485					      REPEND
+    522  f486		       00		      .byte.b	#%00000000
+    521  f486					      REPEND
+    522  f487		       00		      .byte.b	#%00000000
+    521  f487					      REPEND
+    522  f488		       00		      .byte.b	#%00000000
+    521  f488					      REPEND
+    522  f489		       00		      .byte.b	#%00000000
+    521  f489					      REPEND
+    522  f48a		       00		      .byte.b	#%00000000
+    521  f48a					      REPEND
+    522  f48b		       00		      .byte.b	#%00000000
+    521  f48b					      REPEND
+    522  f48c		       00		      .byte.b	#%00000000
+    521  f48c					      REPEND
+    522  f48d		       00		      .byte.b	#%00000000
+    521  f48d					      REPEND
+    522  f48e		       00		      .byte.b	#%00000000
+    521  f48e					      REPEND
+    522  f48f		       00		      .byte.b	#%00000000
+    521  f48f					      REPEND
+    522  f490		       00		      .byte.b	#%00000000
+    521  f490					      REPEND
+    522  f491		       00		      .byte.b	#%00000000
+    521  f491					      REPEND
+    522  f492		       00		      .byte.b	#%00000000
+    521  f492					      REPEND
+    522  f493		       00		      .byte.b	#%00000000
+    521  f493					      REPEND
+    522  f494		       00		      .byte.b	#%00000000
+    521  f494					      REPEND
+    522  f495		       00		      .byte.b	#%00000000
+    521  f495					      REPEND
+    522  f496		       00		      .byte.b	#%00000000
+    521  f496					      REPEND
+    522  f497		       00		      .byte.b	#%00000000
+    521  f497					      REPEND
+    522  f498		       00		      .byte.b	#%00000000
+    521  f498					      REPEND
+    522  f499		       00		      .byte.b	#%00000000
+    521  f499					      REPEND
+    522  f49a		       00		      .byte.b	#%00000000
+    521  f49a					      REPEND
+    522  f49b		       00		      .byte.b	#%00000000
+    521  f49b					      REPEND
+    522  f49c		       00		      .byte.b	#%00000000
+    521  f49c					      REPEND
+    522  f49d		       00		      .byte.b	#%00000000
+    521  f49d					      REPEND
+    522  f49e		       00		      .byte.b	#%00000000
+    521  f49e					      REPEND
+    522  f49f		       00		      .byte.b	#%00000000
+    521  f49f					      REPEND
+    522  f4a0		       00		      .byte.b	#%00000000
+    521  f4a0					      REPEND
+    522  f4a1		       00		      .byte.b	#%00000000
+    521  f4a1					      REPEND
+    522  f4a2		       00		      .byte.b	#%00000000
+    521  f4a2					      REPEND
+    522  f4a3		       00		      .byte.b	#%00000000
+    521  f4a3					      REPEND
+    522  f4a4		       00		      .byte.b	#%00000000
+    521  f4a4					      REPEND
+    522  f4a5		       00		      .byte.b	#%00000000
+    521  f4a5					      REPEND
+    522  f4a6		       00		      .byte.b	#%00000000
+    521  f4a6					      REPEND
+    522  f4a7		       00		      .byte.b	#%00000000
+    521  f4a7					      REPEND
+    522  f4a8		       00		      .byte.b	#%00000000
+    521  f4a8					      REPEND
+    522  f4a9		       00		      .byte.b	#%00000000
+    523  f4aa					      REPEND
+    524  f4aa					      REPEAT	PlayfiledSize
+    525  f4aa		       00		      .byte.b	#%00000000
+    524  f4aa					      REPEND
+    525  f4ab		       00		      .byte.b	#%00000000
+    524  f4ab					      REPEND
+    525  f4ac		       00		      .byte.b	#%00000000
+    524  f4ac					      REPEND
+    525  f4ad		       00		      .byte.b	#%00000000
+    526  f4ae					      REPEND
+    527  f4ae
+    528  f4ae				   RightPlayfiledPF2
+    529  f4ae					      REPEAT	PlayfiledSize
+    530  f4ae		       ff		      .byte.b	#%11111111
+    529  f4ae					      REPEND
+    530  f4af		       ff		      .byte.b	#%11111111
+    529  f4af					      REPEND
+    530  f4b0		       ff		      .byte.b	#%11111111
+    529  f4b0					      REPEND
+    530  f4b1		       ff		      .byte.b	#%11111111
+    531  f4b2					      REPEND
+    532  f4b2					      REPEAT	[RightPlatformPosition]
+    533  f4b2		       80		      .byte.b	#%10000000
+    532  f4b2					      REPEND
+    533  f4b3		       80		      .byte.b	#%10000000
+    532  f4b3					      REPEND
+    533  f4b4		       80		      .byte.b	#%10000000
+    532  f4b4					      REPEND
+    533  f4b5		       80		      .byte.b	#%10000000
+    532  f4b5					      REPEND
+    533  f4b6		       80		      .byte.b	#%10000000
+    532  f4b6					      REPEND
+    533  f4b7		       80		      .byte.b	#%10000000
+    532  f4b7					      REPEND
+    533  f4b8		       80		      .byte.b	#%10000000
+    532  f4b8					      REPEND
+    533  f4b9		       80		      .byte.b	#%10000000
+    532  f4b9					      REPEND
+    533  f4ba		       80		      .byte.b	#%10000000
+    532  f4ba					      REPEND
+    533  f4bb		       80		      .byte.b	#%10000000
+    532  f4bb					      REPEND
+    533  f4bc		       80		      .byte.b	#%10000000
+    532  f4bc					      REPEND
+    533  f4bd		       80		      .byte.b	#%10000000
+    532  f4bd					      REPEND
+    533  f4be		       80		      .byte.b	#%10000000
+    532  f4be					      REPEND
+    533  f4bf		       80		      .byte.b	#%10000000
+    532  f4bf					      REPEND
+    533  f4c0		       80		      .byte.b	#%10000000
+    532  f4c0					      REPEND
+    533  f4c1		       80		      .byte.b	#%10000000
+    532  f4c1					      REPEND
+    533  f4c2		       80		      .byte.b	#%10000000
+    532  f4c2					      REPEND
+    533  f4c3		       80		      .byte.b	#%10000000
+    532  f4c3					      REPEND
+    533  f4c4		       80		      .byte.b	#%10000000
+    532  f4c4					      REPEND
+    533  f4c5		       80		      .byte.b	#%10000000
+    532  f4c5					      REPEND
+    533  f4c6		       80		      .byte.b	#%10000000
+    532  f4c6					      REPEND
+    533  f4c7		       80		      .byte.b	#%10000000
+    532  f4c7					      REPEND
+    533  f4c8		       80		      .byte.b	#%10000000
+    532  f4c8					      REPEND
+    533  f4c9		       80		      .byte.b	#%10000000
+    532  f4c9					      REPEND
+    533  f4ca		       80		      .byte.b	#%10000000
+    532  f4ca					      REPEND
+    533  f4cb		       80		      .byte.b	#%10000000
+    532  f4cb					      REPEND
+    533  f4cc		       80		      .byte.b	#%10000000
+    532  f4cc					      REPEND
+    533  f4cd		       80		      .byte.b	#%10000000
+    532  f4cd					      REPEND
+    533  f4ce		       80		      .byte.b	#%10000000
+    532  f4ce					      REPEND
+    533  f4cf		       80		      .byte.b	#%10000000
+    532  f4cf					      REPEND
+    533  f4d0		       80		      .byte.b	#%10000000
+    532  f4d0					      REPEND
+    533  f4d1		       80		      .byte.b	#%10000000
+    532  f4d1					      REPEND
+    533  f4d2		       80		      .byte.b	#%10000000
+    532  f4d2					      REPEND
+    533  f4d3		       80		      .byte.b	#%10000000
+    532  f4d3					      REPEND
+    533  f4d4		       80		      .byte.b	#%10000000
+    532  f4d4					      REPEND
+    533  f4d5		       80		      .byte.b	#%10000000
+    532  f4d5					      REPEND
+    533  f4d6		       80		      .byte.b	#%10000000
+    532  f4d6					      REPEND
+    533  f4d7		       80		      .byte.b	#%10000000
+    532  f4d7					      REPEND
+    533  f4d8		       80		      .byte.b	#%10000000
+    532  f4d8					      REPEND
+    533  f4d9		       80		      .byte.b	#%10000000
+    532  f4d9					      REPEND
+    533  f4da		       80		      .byte.b	#%10000000
+    532  f4da					      REPEND
+    533  f4db		       80		      .byte.b	#%10000000
+    532  f4db					      REPEND
+    533  f4dc		       80		      .byte.b	#%10000000
+    532  f4dc					      REPEND
+    533  f4dd		       80		      .byte.b	#%10000000
+    532  f4dd					      REPEND
+    533  f4de		       80		      .byte.b	#%10000000
+    532  f4de					      REPEND
+    533  f4df		       80		      .byte.b	#%10000000
+    532  f4df					      REPEND
+    533  f4e0		       80		      .byte.b	#%10000000
+    532  f4e0					      REPEND
+    533  f4e1		       80		      .byte.b	#%10000000
+    532  f4e1					      REPEND
+    533  f4e2		       80		      .byte.b	#%10000000
+    532  f4e2					      REPEND
+    533  f4e3		       80		      .byte.b	#%10000000
+    534  f4e4					      REPEND
+    535  f4e4					      REPEAT	[PlayfiledSize]
+    536  f4e4		       ff		      .byte.b	#%11111111
+    535  f4e4					      REPEND
+    536  f4e5		       ff		      .byte.b	#%11111111
+    535  f4e5					      REPEND
+    536  f4e6		       ff		      .byte.b	#%11111111
+    535  f4e6					      REPEND
+    536  f4e7		       ff		      .byte.b	#%11111111
+    537  f4e8					      REPEND
+    538  f4e8					      REPEAT	[VisableScanLinesCount - RightPlatformPosition - 3*PlayfiledSize]
+    539  f4e8		       80		      .byte.b	#%10000000
+    538  f4e8					      REPEND
+    539  f4e9		       80		      .byte.b	#%10000000
+    538  f4e9					      REPEND
+    539  f4ea		       80		      .byte.b	#%10000000
+    538  f4ea					      REPEND
+    539  f4eb		       80		      .byte.b	#%10000000
+    538  f4eb					      REPEND
+    539  f4ec		       80		      .byte.b	#%10000000
+    538  f4ec					      REPEND
+    539  f4ed		       80		      .byte.b	#%10000000
+    538  f4ed					      REPEND
+    539  f4ee		       80		      .byte.b	#%10000000
+    538  f4ee					      REPEND
+    539  f4ef		       80		      .byte.b	#%10000000
+    538  f4ef					      REPEND
+    539  f4f0		       80		      .byte.b	#%10000000
+    538  f4f0					      REPEND
+    539  f4f1		       80		      .byte.b	#%10000000
+    538  f4f1					      REPEND
+    539  f4f2		       80		      .byte.b	#%10000000
+    538  f4f2					      REPEND
+    539  f4f3		       80		      .byte.b	#%10000000
+    538  f4f3					      REPEND
+    539  f4f4		       80		      .byte.b	#%10000000
+    538  f4f4					      REPEND
+    539  f4f5		       80		      .byte.b	#%10000000
+    538  f4f5					      REPEND
+    539  f4f6		       80		      .byte.b	#%10000000
+    538  f4f6					      REPEND
+    539  f4f7		       80		      .byte.b	#%10000000
+    538  f4f7					      REPEND
+    539  f4f8		       80		      .byte.b	#%10000000
+    538  f4f8					      REPEND
+    539  f4f9		       80		      .byte.b	#%10000000
+    538  f4f9					      REPEND
+    539  f4fa		       80		      .byte.b	#%10000000
+    538  f4fa					      REPEND
+    539  f4fb		       80		      .byte.b	#%10000000
+    538  f4fb					      REPEND
+    539  f4fc		       80		      .byte.b	#%10000000
+    538  f4fc					      REPEND
+    539  f4fd		       80		      .byte.b	#%10000000
+    538  f4fd					      REPEND
+    539  f4fe		       80		      .byte.b	#%10000000
+    538  f4fe					      REPEND
+    539  f4ff		       80		      .byte.b	#%10000000
+    538  f4ff					      REPEND
+    539  f500		       80		      .byte.b	#%10000000
+    538  f500					      REPEND
+    539  f501		       80		      .byte.b	#%10000000
+    538  f501					      REPEND
+    539  f502		       80		      .byte.b	#%10000000
+    538  f502					      REPEND
+    539  f503		       80		      .byte.b	#%10000000
+    538  f503					      REPEND
+    539  f504		       80		      .byte.b	#%10000000
+    538  f504					      REPEND
+    539  f505		       80		      .byte.b	#%10000000
+    538  f505					      REPEND
+    539  f506		       80		      .byte.b	#%10000000
+    538  f506					      REPEND
+    539  f507		       80		      .byte.b	#%10000000
+    538  f507					      REPEND
+    539  f508		       80		      .byte.b	#%10000000
+    538  f508					      REPEND
+    539  f509		       80		      .byte.b	#%10000000
+    538  f509					      REPEND
+    539  f50a		       80		      .byte.b	#%10000000
+    538  f50a					      REPEND
+    539  f50b		       80		      .byte.b	#%10000000
+    538  f50b					      REPEND
+    539  f50c		       80		      .byte.b	#%10000000
+    538  f50c					      REPEND
+    539  f50d		       80		      .byte.b	#%10000000
+    538  f50d					      REPEND
+    539  f50e		       80		      .byte.b	#%10000000
+    538  f50e					      REPEND
+    539  f50f		       80		      .byte.b	#%10000000
+    538  f50f					      REPEND
+    539  f510		       80		      .byte.b	#%10000000
+    538  f510					      REPEND
+    539  f511		       80		      .byte.b	#%10000000
+    538  f511					      REPEND
+    539  f512		       80		      .byte.b	#%10000000
+    538  f512					      REPEND
+    539  f513		       80		      .byte.b	#%10000000
+    538  f513					      REPEND
+    539  f514		       80		      .byte.b	#%10000000
+    538  f514					      REPEND
+    539  f515		       80		      .byte.b	#%10000000
+    538  f515					      REPEND
+    539  f516		       80		      .byte.b	#%10000000
+    538  f516					      REPEND
+    539  f517		       80		      .byte.b	#%10000000
+    538  f517					      REPEND
+    539  f518		       80		      .byte.b	#%10000000
+    538  f518					      REPEND
+    539  f519		       80		      .byte.b	#%10000000
+    538  f519					      REPEND
+    539  f51a		       80		      .byte.b	#%10000000
+    538  f51a					      REPEND
+    539  f51b		       80		      .byte.b	#%10000000
+    538  f51b					      REPEND
+    539  f51c		       80		      .byte.b	#%10000000
+    538  f51c					      REPEND
+    539  f51d		       80		      .byte.b	#%10000000
+    538  f51d					      REPEND
+    539  f51e		       80		      .byte.b	#%10000000
+    538  f51e					      REPEND
+    539  f51f		       80		      .byte.b	#%10000000
+    538  f51f					      REPEND
+    539  f520		       80		      .byte.b	#%10000000
+    538  f520					      REPEND
+    539  f521		       80		      .byte.b	#%10000000
+    538  f521					      REPEND
+    539  f522		       80		      .byte.b	#%10000000
+    538  f522					      REPEND
+    539  f523		       80		      .byte.b	#%10000000
+    538  f523					      REPEND
+    539  f524		       80		      .byte.b	#%10000000
+    538  f524					      REPEND
+    539  f525		       80		      .byte.b	#%10000000
+    538  f525					      REPEND
+    539  f526		       80		      .byte.b	#%10000000
+    538  f526					      REPEND
+    539  f527		       80		      .byte.b	#%10000000
+    538  f527					      REPEND
+    539  f528		       80		      .byte.b	#%10000000
+    538  f528					      REPEND
+    539  f529		       80		      .byte.b	#%10000000
+    538  f529					      REPEND
+    539  f52a		       80		      .byte.b	#%10000000
+    538  f52a					      REPEND
+    539  f52b		       80		      .byte.b	#%10000000
+    538  f52b					      REPEND
+    539  f52c		       80		      .byte.b	#%10000000
+    538  f52c					      REPEND
+    539  f52d		       80		      .byte.b	#%10000000
+    538  f52d					      REPEND
+    539  f52e		       80		      .byte.b	#%10000000
+    538  f52e					      REPEND
+    539  f52f		       80		      .byte.b	#%10000000
+    538  f52f					      REPEND
+    539  f530		       80		      .byte.b	#%10000000
+    538  f530					      REPEND
+    539  f531		       80		      .byte.b	#%10000000
+    538  f531					      REPEND
+    539  f532		       80		      .byte.b	#%10000000
+    538  f532					      REPEND
+    539  f533		       80		      .byte.b	#%10000000
+    538  f533					      REPEND
+    539  f534		       80		      .byte.b	#%10000000
+    538  f534					      REPEND
+    539  f535		       80		      .byte.b	#%10000000
+    538  f535					      REPEND
+    539  f536		       80		      .byte.b	#%10000000
+    538  f536					      REPEND
+    539  f537		       80		      .byte.b	#%10000000
+    538  f537					      REPEND
+    539  f538		       80		      .byte.b	#%10000000
+    538  f538					      REPEND
+    539  f539		       80		      .byte.b	#%10000000
+    538  f539					      REPEND
+    539  f53a		       80		      .byte.b	#%10000000
+    538  f53a					      REPEND
+    539  f53b		       80		      .byte.b	#%10000000
+    538  f53b					      REPEND
+    539  f53c		       80		      .byte.b	#%10000000
+    538  f53c					      REPEND
+    539  f53d		       80		      .byte.b	#%10000000
+    538  f53d					      REPEND
+    539  f53e		       80		      .byte.b	#%10000000
+    538  f53e					      REPEND
+    539  f53f		       80		      .byte.b	#%10000000
+    538  f53f					      REPEND
+    539  f540		       80		      .byte.b	#%10000000
+    538  f540					      REPEND
+    539  f541		       80		      .byte.b	#%10000000
+    538  f541					      REPEND
+    539  f542		       80		      .byte.b	#%10000000
+    538  f542					      REPEND
+    539  f543		       80		      .byte.b	#%10000000
+    538  f543					      REPEND
+    539  f544		       80		      .byte.b	#%10000000
+    538  f544					      REPEND
+    539  f545		       80		      .byte.b	#%10000000
+    538  f545					      REPEND
+    539  f546		       80		      .byte.b	#%10000000
+    538  f546					      REPEND
+    539  f547		       80		      .byte.b	#%10000000
+    538  f547					      REPEND
+    539  f548		       80		      .byte.b	#%10000000
+    538  f548					      REPEND
+    539  f549		       80		      .byte.b	#%10000000
+    538  f549					      REPEND
+    539  f54a		       80		      .byte.b	#%10000000
+    538  f54a					      REPEND
+    539  f54b		       80		      .byte.b	#%10000000
+    538  f54b					      REPEND
+    539  f54c		       80		      .byte.b	#%10000000
+    538  f54c					      REPEND
+    539  f54d		       80		      .byte.b	#%10000000
+    538  f54d					      REPEND
+    539  f54e		       80		      .byte.b	#%10000000
+    538  f54e					      REPEND
+    539  f54f		       80		      .byte.b	#%10000000
+    538  f54f					      REPEND
+    539  f550		       80		      .byte.b	#%10000000
+    538  f550					      REPEND
+    539  f551		       80		      .byte.b	#%10000000
+    538  f551					      REPEND
+    539  f552		       80		      .byte.b	#%10000000
+    538  f552					      REPEND
+    539  f553		       80		      .byte.b	#%10000000
+    538  f553					      REPEND
+    539  f554		       80		      .byte.b	#%10000000
+    538  f554					      REPEND
+    539  f555		       80		      .byte.b	#%10000000
+    538  f555					      REPEND
+    539  f556		       80		      .byte.b	#%10000000
+    538  f556					      REPEND
+    539  f557		       80		      .byte.b	#%10000000
+    538  f557					      REPEND
+    539  f558		       80		      .byte.b	#%10000000
+    538  f558					      REPEND
+    539  f559		       80		      .byte.b	#%10000000
+    538  f559					      REPEND
+    539  f55a		       80		      .byte.b	#%10000000
+    538  f55a					      REPEND
+    539  f55b		       80		      .byte.b	#%10000000
+    538  f55b					      REPEND
+    539  f55c		       80		      .byte.b	#%10000000
+    538  f55c					      REPEND
+    539  f55d		       80		      .byte.b	#%10000000
+    538  f55d					      REPEND
+    539  f55e		       80		      .byte.b	#%10000000
+    538  f55e					      REPEND
+    539  f55f		       80		      .byte.b	#%10000000
+    538  f55f					      REPEND
+    539  f560		       80		      .byte.b	#%10000000
+    538  f560					      REPEND
+    539  f561		       80		      .byte.b	#%10000000
+    538  f561					      REPEND
+    539  f562		       80		      .byte.b	#%10000000
+    538  f562					      REPEND
+    539  f563		       80		      .byte.b	#%10000000
+    538  f563					      REPEND
+    539  f564		       80		      .byte.b	#%10000000
+    538  f564					      REPEND
+    539  f565		       80		      .byte.b	#%10000000
+    538  f565					      REPEND
+    539  f566		       80		      .byte.b	#%10000000
+    538  f566					      REPEND
+    539  f567		       80		      .byte.b	#%10000000
+    538  f567					      REPEND
+    539  f568		       80		      .byte.b	#%10000000
+    538  f568					      REPEND
+    539  f569		       80		      .byte.b	#%10000000
+    540  f56a					      REPEND
+    541  f56a					      REPEAT	PlayfiledSize
+    542  f56a		       80		      .byte.b	#%10000000
+    541  f56a					      REPEND
+    542  f56b		       80		      .byte.b	#%10000000
+    541  f56b					      REPEND
+    542  f56c		       80		      .byte.b	#%10000000
+    541  f56c					      REPEND
+    542  f56d		       80		      .byte.b	#%10000000
+    543  f56e					      REPEND
+    544  f56e
+    545  f56e							; OK, last little bit of crap to take care of.
+    546  f56e							; there are two special memory locations, $FFFC and $FFFE
+    547  f56e							; When the atari starts up, a "reset" is done (which has nothing to do with
+    548  f56e							; the reset switch on the console!) When this happens, the 6502 looks at
+    549  f56e							; memory location $FFFC (and by extension its neighbor $FFFD, since it's
+    550  f56e							; seaching for both bytes of a full memory address)  and then goes to the
+    551  f56e							; location pointed to by $FFFC/$FFFD...so our first .word Start tells DASM
+    552  f56e							; to put the binary data that we labeled "Start" at the location we established
+    553  f56e							; with org.  And then we do it again for $FFFE/$FFFF, which is for a special
+    554  f56e							; event called a BRK which you don't have to worry about now.
+    555  f56e
+    556  fffc					      org	$FFFC
+    557  fffc		       00 f0		      .word.w	Start
+    558  fffe		       00 f0		      .word.w	Start
